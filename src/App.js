@@ -5,6 +5,8 @@ import Header from './Layout/Header/Header';
 import Authorizations from './Views/Authorizations/Authorizations';
 import ClientDetails from './Views/ClientDetails/ClientDetails';
 import ClientDetailsList from './Views/ClientDetailsList/ClientDetailsList';
+import HealthCareSettings from './Views/HealthCareSettings/HealthCareSettings';
+import HealthCareSettingsList from './Views/HealthCareSettingsList/HealthCareSettingsList';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import ReactNotification from 'react-notifications-component';
 
@@ -14,10 +16,13 @@ class App extends Component {
     this.state = {
       displayJSONObject: false,
       isAuthorized: false,
-      selectedClientDetails: {}
+      selectedClientDetails: {},
+      selectedHealthCareSettings:{}
     };
     this.selectedClientDetails = this.selectedClientDetails.bind(this);
+    this.selectedHealthCareSettings = this.selectedHealthCareSettings.bind(this);
     this.addNew = this.addNew.bind(this);
+    this.addNewHealthCare = this.addNewHealthCare.bind(this);
   }
 
   async selectedClientDetails(_state) {
@@ -27,10 +32,25 @@ class App extends Component {
     });
   }
 
+  async selectedHealthCareSettings(_state) {
+    const updatedState = JSON.parse(JSON.stringify(_state));
+    await this.setState({
+      selectedHealthCareSettings: updatedState
+    });
+  }
+
   async addNew(_state) {
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
       addNew: updatedState
+    });
+  }
+
+  async addNewHealthCare(_state) {
+    console.log(JSON.stringify(_state));
+    const updatedState = JSON.parse(JSON.stringify(_state));
+    await this.setState({
+      addNewHealthCare: updatedState
     });
   }
 
@@ -49,6 +69,12 @@ class App extends Component {
               </Switch>
               <Switch>
                 <Route exact path="/clientDetailsList" render={props => (<ClientDetailsList {...props} selectedClientDetails={this.selectedClientDetails} addNew={this.addNew}></ClientDetailsList>)}></Route>
+              </Switch>
+              <Switch>
+                <Route exact path="/healthCareSettings" render={props => (<HealthCareSettings {...props} selectedHealthCareSettings={this.state.selectedHealthCareSettings} addNewHealthCare={this.state.addNewHealthCare}></HealthCareSettings>)}></Route>
+              </Switch>
+              <Switch>
+                <Route exact path="/healthCareSettingsList" render={props => (<HealthCareSettingsList {...props} selectedHealthCareSettings={this.selectedHealthCareSettings} addNewHealthCare={this.addNewHealthCare}></HealthCareSettingsList>)}></Route>
               </Switch>
             </Router>
           </Container>

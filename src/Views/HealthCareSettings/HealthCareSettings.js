@@ -37,9 +37,9 @@ class HealthCareSettings extends Component {
             this.state.clientId = this.selectedHealthCareSettings.clientId;
             this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
             this.state.fhirServerBaseURL = this.selectedHealthCareSettings.fhirServerBaseURL;
-            this.state.tokenEndpoint = this.selectedHealthCareSettings.tokenURL;
+            this.state.tokenEndpoint = this.selectedHealthCareSettings.tokenUrl;
             this.state.scopes = this.selectedHealthCareSettings.scopes;
-            this.state.restAPIURL= this.selectedHealthCareSettings.restAPIURL;
+            this.state.restAPIURL= this.selectedHealthCareSettings.restApiUrl;
             this.state.startThreshold = this.selectedHealthCareSettings.encounterStartThreshold;
             this.state.endThreshold = this.selectedHealthCareSettings.encounterEndThreshold;
 
@@ -184,9 +184,9 @@ class HealthCareSettings extends Component {
             clientId: this.state.clientId,
             clientSecret: this.state.clientSecret && this.state.authType === 'SofSystem' ? this.state.clientSecret : null,
             fhirServerBaseURL: this.state.fhirServerBaseURL,
-            tokenURL: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
+            tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
-            restAPIURL: this.state.restAPIURL ? this.state.restAPIURL : null,
+            restApiUrl: this.state.restAPIURL ? this.state.restAPIURL : null,
             encounterStartThreshold: this.state.startThreshold,
             encounterEndThreshold: this.state.endThreshold,
             lastUpdated:new Date()

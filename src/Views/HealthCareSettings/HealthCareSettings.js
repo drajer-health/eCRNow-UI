@@ -3,21 +3,32 @@ import {
     Alert,
     Row,
     Col,
-    Form, Card, Accordion, Button
+    Form, Card, Accordion, Button,Table
 } from 'react-bootstrap';
 import './HealthCareSettings.css';
 import { store } from 'react-notifications-component';
+import TextField from '@material-ui/core/TextField/TextField';
+import MenuItem from '@material-ui/core/MenuItem';
 
 class HealthCareSettings extends Component {
     constructor(props) {
         super(props);
         this.state = {
             validated: false,
-            isChecked: false
+            isChecked: false,
+            karFhirServerURLList:[],
+            isKarFhirServerURLSelected:false,
+            selectedKARDetails:[]
         };
         this.selectedHealthCareSettings = this.props.selectedHealthCareSettings;
-        console.log(this.props);
-        this.addNewHealthCare = this.props.addNewHealthCare ? this.props.addNewHealthCare.addNewHealthCare : false;
+        console.log(this.props.addNewHealthCare);
+        const propType = typeof this.props.addNewHealthCare;
+        if(propType === "boolean"){
+            this.addNewHealthCare = this.props.addNewHealthCare ? this.props.addNewHealthCare : false;
+        } else {
+            this.addNewHealthCare = this.props.addNewHealthCare ? this.props.addNewHealthCare.addNewHealthCare : false;
+        }
+        
         console.log(this.addNewHealthCare);
         console.log(this.selectedHealthCareSettings);
         if (!this.addNewHealthCare && !this.isEmpty(this.selectedHealthCareSettings)) {
@@ -31,6 +42,8 @@ class HealthCareSettings extends Component {
             this.state.restAPIURL= this.selectedHealthCareSettings.restAPIURL;
             this.state.startThreshold = this.selectedHealthCareSettings.encounterStartThreshold;
             this.state.endThreshold = this.selectedHealthCareSettings.encounterEndThreshold;
+
+            this.getKARs();
         } else {
             this.state.authType = 'SofProvider';
         }
@@ -40,6 +53,50 @@ class HealthCareSettings extends Component {
         this.handleDirectChange = this.handleDirectChange.bind(this);
         this.handleReportChange = this.handleReportChange.bind(this);
         this.openHealthCareSettingsList = this.openHealthCareSettingsList.bind(this);
+        this.openKAR = this.openKAR.bind(this);
+    }
+
+    getKARs(){
+        console.log("clicked");
+        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/kars/", {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    const errorMessage = response.json();
+                    console.log(errorMessage);
+                    store.addNotification({
+                        title: '' + response.status + '',
+                        message: 'Error in fetching the KARs',
+                        type: 'danger',
+                        insert: 'bottom',
+                        container: 'bottom-right',
+                        animationIn: ['animated', 'fadeIn'],
+                        animationOut: ['animated', 'fadeOut'],
+                        dismiss: {
+                            duration: 5000,
+                            click: true,
+                            onScreen: true
+                        }
+                    });
+                    return;
+                }
+            })
+            .then(result => {
+                console.log(result);
+                if (result) {
+                    console.log(result);
+                    this.setState({
+                        karFhirServerURLList:result
+                    })
+                }
+
+            });
     }
 
     isEmpty(obj) {
@@ -74,6 +131,17 @@ class HealthCareSettings extends Component {
         });
     }
 
+    async handleKARChange(e){
+        let kARDetails = this.state.karFhirServerURLList.filter(x=> {
+            return x.id== e.target.value;
+        });
+        await this.setState({
+             karFhirServerURL: e.target.value,
+             isKarFhirServerURLSelected: true,
+             selectedKARDetails: kARDetails[0].kars_info
+        })
+    }
+
     handleToggleButton(e) {
         console.log(e);
         console.log(e.target.value);
@@ -85,8 +153,16 @@ class HealthCareSettings extends Component {
         console.log(this.state);
     }
 
+    handleCheckboxChange(e,rowData){
+        console.log(e.target.checked);
+        console.log(rowData);
+    }
+
     openHealthCareSettingsList() {
         this.props.history.push('healthCareSettingsList');
+    }
+    openKAR(){
+        this.props.history.push('kar');
     }
 
     geturl() {
@@ -218,8 +294,11 @@ class HealthCareSettings extends Component {
                     <Col md="6">
                         <h2>HealthCare Settings</h2>
                     </Col>
-                    <Col md="6" className="clientCol">
+                    <Col md="3" className="clientCol">
                         <Button onClick={this.openHealthCareSettingsList}>Existing HealthCareSettings</Button>
+                    </Col>
+                    <Col md="3" className="clientCol">
+                        <Button onClick={this.openKAR}>Knowledge Artifact Repository</Button>
                     </Col>
                 </Row>
                 <hr />
@@ -385,6 +464,63 @@ class HealthCareSettings extends Component {
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>
+                            
+                                {!this.addNewHealthCare?(
+                                <Card className="accordionCards">
+                                    <Accordion.Toggle as={Card.Header} eventKey="2">
+                                        Knowledge Artifact Repository Configuration
+                                    </Accordion.Toggle>
+                                    <Accordion.Collapse eventKey="2">
+                                        <Card.Body className="appConfiguration">
+
+                                        <Form.Group as={Row} controlId="fhirServerURLPickList">
+                                            <Form.Label column lg="3">
+                                                Select FHIR Server URL:
+                                            </Form.Label>
+                                            <Col lg="9">
+                                            <Form.Control as="select" defaultValue="Select FHIR Server URL" onChange={e=>this.handleKARChange(e)}>
+                                                <option>Select FHIR Server URL</option>
+                                                {this.state.karFhirServerURLList.map(option => (
+                                                    <option key={option.id} value={option.id}>
+                                                    {option.fhirServerURL}
+                                                    </option>
+                                                ))}
+                                            </Form.Control>
+                                            </Col>
+                                            </Form.Group>
+
+                                            {this.state.isKarFhirServerURLSelected  ? (
+                                                <Row>
+                                                <Col>
+                                                    <Table responsive="lg" striped bordered hover size="sm">
+                                                        <tbody>
+                                                            <tr>
+                                                                <th></th>
+                                                                <th>PlanDefinitionId</th>
+                                                                <th>Name</th>
+                                                                <th>Publisher</th>
+                                                                <th>Version</th>
+                                                            </tr>
+                                                            {
+                                                                this.state.selectedKARDetails.map(get =>
+                                                                    <tr key={get.planDefinitionId}>
+                                                                        <td><Form.Check type="checkbox" onChange={(e) => this.handleCheckboxChange(e, get.planDefinitionId)}/></td>
+                                                                        <td>{get.planDefinitionId}</td>
+                                                                        <td>{get.planDefinitionName}</td>
+                                                                        <td>{get.planDefinitionPublisher}</td>
+                                                                        <td>{get.planDefinitionVersion}</td>
+                                                                    </tr>
+                                                                )
+                                                            }
+                                                        </tbody>
+                                                    </Table>
+                                                </Col>
+                                            </Row>
+                                                ):''}
+                                        </Card.Body>
+                                    </Accordion.Collapse>
+                                </Card>):''}
+                                
                             </Accordion>
                             <Row>
                                 <Col className="text-center">

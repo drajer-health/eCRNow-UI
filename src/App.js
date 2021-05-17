@@ -7,6 +7,7 @@ import ClientDetails from './Views/ClientDetails/ClientDetails';
 import ClientDetailsList from './Views/ClientDetailsList/ClientDetailsList';
 import HealthCareSettings from './Views/HealthCareSettings/HealthCareSettings';
 import HealthCareSettingsList from './Views/HealthCareSettingsList/HealthCareSettingsList';
+import KAR from './Views/KAR/KAR';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import ReactNotification from 'react-notifications-component';
 
@@ -17,7 +18,8 @@ class App extends Component {
       displayJSONObject: false,
       isAuthorized: false,
       selectedClientDetails: {},
-      selectedHealthCareSettings:{}
+      selectedHealthCareSettings:{},
+      addNewHealthCare:true
     };
     this.selectedClientDetails = this.selectedClientDetails.bind(this);
     this.selectedHealthCareSettings = this.selectedHealthCareSettings.bind(this);
@@ -75,6 +77,9 @@ class App extends Component {
               </Switch>
               <Switch>
                 <Route exact path="/healthCareSettingsList" render={props => (<HealthCareSettingsList {...props} selectedHealthCareSettings={this.selectedHealthCareSettings} addNewHealthCare={this.addNewHealthCare}></HealthCareSettingsList>)}></Route>
+              </Switch>
+              <Switch>
+                <Route exact path="/kar" render={props => (<KAR {...props} ></KAR>)}></Route>
               </Switch>
             </Router>
           </Container>

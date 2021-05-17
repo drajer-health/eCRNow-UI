@@ -85,17 +85,15 @@ class KAR extends Component {
       if(bundleEntries.length>0){
         for(var i=0; i<bundleEntries.length; i++){
           const resource = bundleEntries[i].resource;
-          console.log(resource.id);
           const tableRow = {
-            planDefinitionId: resource.id,
-            planDefinitionName: resource.name,
-            planDefinitionPublisher: resource.publisher,
-            planDefinitionVersion: resource.version
+            planDefinitionId: resource.id?resource.id:"",
+            planDefinitionName: resource.name?resource.name:"",
+            planDefinitionPublisher: resource.publisher?resource.publisher:"",
+            planDefinitionVersion: resource.version?resource.version:""
           }
           tableEntries.push(tableRow);
         }
       }
-      console.log(tableEntries);
       this.setState({
         details:tableEntries
       })

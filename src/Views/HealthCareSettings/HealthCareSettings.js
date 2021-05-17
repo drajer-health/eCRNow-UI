@@ -467,10 +467,10 @@ class HealthCareSettings extends Component {
                             
                                 {!this.addNewHealthCare?(
                                 <Card className="accordionCards">
-                                    <Accordion.Toggle as={Card.Header} eventKey="2">
+                                    <Accordion.Toggle as={Card.Header} eventKey="3">
                                         Knowledge Artifact Repository Configuration
                                     </Accordion.Toggle>
-                                    <Accordion.Collapse eventKey="2">
+                                    <Accordion.Collapse eventKey="3">
                                         <Card.Body className="appConfiguration">
 
                                         <Form.Group as={Row} controlId="fhirServerURLPickList">

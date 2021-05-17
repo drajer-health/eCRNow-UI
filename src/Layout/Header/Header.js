@@ -18,7 +18,7 @@ class Header extends Component {
     } else if(window.location.pathname === '/healthCareSettings' || window.location.pathname === '/healthCareSettingsList' || window.location.pathname === '/kar' ){
       this.setState({
         appName:'BSA',
-        appDesc:'(Backend Service APP)'
+        appDesc:'(Backend Service App)'
       })
     }
   }

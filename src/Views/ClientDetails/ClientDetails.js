@@ -20,12 +20,20 @@ class ClientDetails extends Component {
         if (!this.addNew && !this.isEmpty(this.selectedClientDetails)) {
             if (this.selectedClientDetails.isProvider) {
                 this.state.launchType = 'providerLaunch';
+                this.state.clientId = this.selectedClientDetails.clientId;
             }
             if (this.selectedClientDetails.isSystem) {
                 this.state.launchType = 'systemLaunch';
+                this.state.clientId = this.selectedClientDetails.clientId;
+                this.state.clientSecret = this.selectedClientDetails.clientSecret;
             }
-            this.state.clientId = this.selectedClientDetails.clientId;
-            this.state.clientSecret = this.selectedClientDetails.clientSecret;
+            if (this.selectedClientDetails.isUserAccountLaunch) {
+                this.state.launchType = 'userAccountLaunch';
+                this.state.username = this.selectedClientDetails.clientId;
+                this.state.password = this.selectedClientDetails.clientSecret;
+            }
+            
+            
             this.state.fhirServerBaseURL = this.selectedClientDetails.fhirServerBaseURL;
             // this.state.tokenEndpoint = this.selectedClientDetails.tokenURL;
             this.state.scopes = this.selectedClientDetails.scopes;
@@ -86,6 +94,17 @@ class ClientDetails extends Component {
     }
 
     handleRadioChange(e) {
+        if(e.target.value === "userAccountLaunch"){
+            this.setState({
+                clientId:''
+            })
+        }
+        if(e.target.value === "systemLaunch" || e.target.value === "providerLaunch"){
+            this.setState({
+                username:'',
+                password:''
+            })
+        }
         this.setState({
             launchType: e.target.value
         });
@@ -131,14 +150,16 @@ class ClientDetails extends Component {
     saveClientDetails() {
         console.log("clicked");
         console.log(this.state.xdrRecipientAddress);
+        console.log(this.state.clientSecret);
         var requestMethod = '';
         var clientDetails = {
             isProvider: this.state.launchType === "providerLaunch" ? true : false,
             isSystem: this.state.launchType === 'systemLaunch' ? true : false,
-            clientId: this.state.clientId,
-            clientSecret: this.state.clientSecret && this.state.launchType === 'systemLaunch' ? this.state.clientSecret : null,
+            isUserAccountLaunch: this.state.launchType === "userAccountLaunch"? true : false,
+            clientId: this.state.launchType === "userAccountLaunch"?this.state.username:this.state.clientId,
+            clientSecret: this.state.clientSecret && this.state.launchType === 'systemLaunch'  ? this.state.clientSecret : this.state.password,
             fhirServerBaseURL: this.state.fhirServerBaseURL,
-            // tokenURL: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
+            tokenURL: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
             isDirect: this.state.directType === "direct" ? true : false,
             isXdr: this.state.directType === "xdr" ? true : false,
@@ -316,9 +337,17 @@ class ClientDetails extends Component {
                                                                 <Form.Check.Label>System Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="userAccountLaunch">
+                                                                <Form.Check.Input type="radio" checked={this.state.launchType === 'userAccountLaunch'} value="userAccountLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Label>Username & Password</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
+                                            {this.state.launchType === 'systemLaunch' || this.state.launchType === 'providerLaunch' ? (
+                                            
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     Client Id:
@@ -329,7 +358,20 @@ class ClientDetails extends Component {
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
                                                 </Col>
+                                            </Form.Group>):(
+                                                <Form.Group as={Row} controlId="formHorizontalClientId">
+                                                <Form.Label column sm={2}>
+                                                    Username:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Username" name="username" required onChange={e => this.handleChange(e)} value={this.state.username} />
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide a Username.
+                                                    </Form.Control.Feedback>
+                                                </Col>
                                             </Form.Group>
+                                            )}
+                                            
 
                                             {this.state.launchType === 'systemLaunch' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
@@ -340,6 +382,20 @@ class ClientDetails extends Component {
                                                         <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} />
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Client Secret.
+                                                        </Form.Control.Feedback>
+                                                    </Col>
+                                                </Form.Group>
+                                            ) : ''}
+
+                                            {this.state.launchType === 'userAccountLaunch' ? (
+                                                <Form.Group as={Row} controlId="formHorizontalClientSecret">
+                                                    <Form.Label column sm={2}>
+                                                        Password:
+                                                    </Form.Label>
+                                                    <Col sm={10}>
+                                                        <Form.Control type="password" placeholder="Password" name="password" required={this.state.launchType === 'userAccountLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
+                                                        <Form.Control.Feedback type="invalid">
+                                                            Please provide a Password.
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
@@ -369,20 +425,20 @@ class ClientDetails extends Component {
                                                 </Col>
                                             </Form.Group>
 
-                                            {/* {this.state.launchType === 'systemLaunch' ? (
+                                            {this.state.launchType === 'userAccountLaunch' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalTokenURL">
                                                     <Form.Label column sm={2}>
                                                         Token Endpoint:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
+                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
 
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a FHIR Server Token URL.
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
-                                            ) : ''} */}
+                                            ) : ''}
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>

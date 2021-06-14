@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  ecrnow-ui:
+    image: ecrnow-ui
+    container_name: ecrnow-ui
+    restart: on-failure
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_ECR_BASE_URL=http://localhost:8081

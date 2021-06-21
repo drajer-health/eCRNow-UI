@@ -2,24 +2,24 @@
 
 The following technologies should have been installed on your machine where you will build, test and deploy your applications.
 
-- NodeJS 12.4.1 or above
-- git tool
+* NodeJS 12.4.1 or above
+* git tool
 
-## Steps to Build and Run the App:
+## Steps to Build and Run the App: ##
 
 ### Clone the repository
 
-`git clone https://github.com/drajer-health/eCRNow-UI.git`
+```git clone https://github.com/drajer-health/eCRNow-UI.git```
 
 ### Build and Run the Application
 
 To run the eCRNow-UI application, from the project directory, run the below commands:
 
-`npm install`
+```npm instal```
 
 This command will download all the required dependencies.Run the below command once the above command is successfully executed.
 
-`npm start`
+```npm start```
 
 Runs the app in the development mode.<br>
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -43,7 +43,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 File: .env
 
-Change the REACT_APP_ECR_BASE_URL value to use the eCRNow backend service base URL.
+Change the REACT_APP_ECR_BASE_URL value to use the eCRNow backend service base URL. 
 
 ### Additional Configuration Changes:
 

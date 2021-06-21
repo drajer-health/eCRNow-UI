@@ -15,7 +15,7 @@ The following technologies should have been installed on your machine where you 
 
 To run the eCRNow-UI application, from the project directory, run the below commands:
 
-```npm instal```
+```npm install```
 
 This command will download all the required dependencies.Run the below command once the above command is successfully executed.
 

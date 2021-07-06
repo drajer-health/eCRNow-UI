@@ -15,6 +15,7 @@ class HealthCareSettings extends Component {
         super(props);
         this.state = {
             validated: false,
+            isValidated:false,
             isChecked: false,
             karFhirServerURLList:[],
             isKarFhirServerURLSelected:false,
@@ -274,8 +275,26 @@ class HealthCareSettings extends Component {
         const handleSubmit = (event) => {
             const form = event.currentTarget;
             if (form.checkValidity() === false) {
+                this.setState({
+                    isValidated: true
+                });
                 event.preventDefault();
                 event.stopPropagation();
+                store.addNotification({
+                    title: 'Warning',
+                    message: 'Please enter all the required fields.',
+                    type: 'warning',
+                    insert: 'bottom',
+                    container: 'bottom-right',
+                    animationIn: ['animated', 'fadeIn'],
+                    animationOut: ['animated', 'fadeOut'],
+                    dismiss: {
+                        duration: 5000,
+                        click: true,
+                        onScreen: true
+                    }
+                });
+                return;
             }
             if (form.checkValidity() === true) {
                 this.saveHealthCareSettings();
@@ -346,7 +365,7 @@ class HealthCareSettings extends Component {
                                                     Client Id:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required onChange={e => this.handleChange(e)} value={this.state.clientId} />
+                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required onChange={e => this.handleChange(e)} value={this.state.clientId} isInvalid={this.state.isValidated && (this.state.clientId === '' || this.state.clientId === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
@@ -359,7 +378,7 @@ class HealthCareSettings extends Component {
                                                         Client Secret:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} />
+                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Client Secret.
                                                         </Form.Control.Feedback>
@@ -372,7 +391,7 @@ class HealthCareSettings extends Component {
                                                     Scopes:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control as="textarea" rows="3" name="scopes" onChange={e => this.handleChange(e)} required value={this.state.scopes} />
+                                                    <Form.Control as="textarea" rows="3" name="scopes" onChange={e => this.handleChange(e)} required value={this.state.scopes} isInvalid={this.state.isValidated && (this.state.scopes === '' || this.state.scopes === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide Scopes.
                                                     </Form.Control.Feedback>
@@ -384,7 +403,7 @@ class HealthCareSettings extends Component {
                                                     FHIR Server Base URL:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="FHIR Server Base URL" name="fhirServerBaseURL" required onChange={e => this.handleChange(e)} value={this.state.fhirServerBaseURL} />
+                                                    <Form.Control type="text" placeholder="FHIR Server Base URL" name="fhirServerBaseURL" required onChange={e => this.handleChange(e)} value={this.state.fhirServerBaseURL} isInvalid={this.state.isValidated && (this.state.fhirServerBaseURL === '' || this.state.fhirServerBaseURL === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a FHIR Server Base URL.
                                                     </Form.Control.Feedback>
@@ -397,7 +416,7 @@ class HealthCareSettings extends Component {
                                                         Token Endpoint:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
+                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} isInvalid={this.state.isValidated && (this.state.tokenEndpoint === '' || this.state.tokenEndpoint === undefined)}/>
 
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a FHIR Server Token URL.
@@ -420,7 +439,7 @@ class HealthCareSettings extends Component {
                                                             Rest API URL:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.directType === 'restApi' ? true : false} name="restAPIURL" onChange={e => this.handleChange(e)} value={this.state.restAPIURL} />
+                                                            <Form.Control type="text" placeholder="Rest API URL" required name="restAPIURL" onChange={e => this.handleChange(e)} value={this.state.restAPIURL} isInvalid={this.state.isValidated && (this.state.restAPIURL === '' || this.state.restAPIURL === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide Rest API URL.
                                                             </Form.Control.Feedback>
@@ -442,7 +461,7 @@ class HealthCareSettings extends Component {
                                                     Encounter Start Time Threshold:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="Encounter Start Time Threshold" required name="startThreshold" onChange={e => this.handleChange(e)} value={this.state.startThreshold} />
+                                                    <Form.Control type="text" placeholder="Encounter Start Time Threshold" required name="startThreshold" onChange={e => this.handleChange(e)} value={this.state.startThreshold} isInvalid={this.state.isValidated && (this.state.startThreshold === '' || this.state.startThreshold === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Encounter Start Time Threshold.
                                                     </Form.Control.Feedback>
@@ -454,7 +473,7 @@ class HealthCareSettings extends Component {
                                                     Encounter End Time Threshold:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="Encounter End Time Threshold" required name="endThreshold" onChange={e => this.handleChange(e)} value={this.state.endThreshold} />
+                                                    <Form.Control type="text" placeholder="Encounter End Time Threshold" required name="endThreshold" onChange={e => this.handleChange(e)} value={this.state.endThreshold} isInvalid={this.state.isValidated && (this.state.endThreshold === '' || this.state.endThreshold === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Encounter End Time Threshold.
                                                     </Form.Control.Feedback>
@@ -486,6 +505,9 @@ class HealthCareSettings extends Component {
                                                     </option>
                                                 ))}
                                             </Form.Control>
+                                            <Form.Control.Feedback type="invalid">
+                                                        Please provide a Encounter End Time Threshold.
+                                                    </Form.Control.Feedback>
                                             </Col>
                                             </Form.Group>
 

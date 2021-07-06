@@ -13,6 +13,7 @@ class ClientDetails extends Component {
         super(props);
         this.state = {
             validated: false,
+            isValidated:false,
             isChecked: false
         };
         this.selectedClientDetails = this.props.selectedClientDetails;
@@ -255,8 +256,26 @@ class ClientDetails extends Component {
         const handleSubmit = (event) => {
             const form = event.currentTarget;
             if (form.checkValidity() === false) {
+                this.setState({
+                    isValidated: true
+                });
                 event.preventDefault();
                 event.stopPropagation();
+                store.addNotification({
+                    title: 'Warning',
+                    message: 'Please enter all the required fields.',
+                    type: 'warning',
+                    insert: 'bottom',
+                    container: 'bottom-right',
+                    animationIn: ['animated', 'fadeIn'],
+                    animationOut: ['animated', 'fadeOut'],
+                    dismiss: {
+                        duration: 5000,
+                        click: true,
+                        onScreen: true
+                    }
+                });
+                return;
             }
             if (form.checkValidity() === true) {
                 this.saveClientDetails();
@@ -324,7 +343,7 @@ class ClientDetails extends Component {
                                                     Client Id:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required onChange={e => this.handleChange(e)} value={this.state.clientId} />
+                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required onChange={e => this.handleChange(e)} value={this.state.clientId} isInvalid={this.state.isValidated && (this.state.clientId === '' || this.state.clientId === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
@@ -337,7 +356,7 @@ class ClientDetails extends Component {
                                                         Client Secret:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} />
+                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Client Secret.
                                                         </Form.Control.Feedback>
@@ -350,7 +369,7 @@ class ClientDetails extends Component {
                                                     Scopes:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control as="textarea" rows="3" name="scopes" onChange={e => this.handleChange(e)} required value={this.state.scopes} />
+                                                    <Form.Control as="textarea" rows="3" name="scopes" onChange={e => this.handleChange(e)} required value={this.state.scopes} isInvalid={this.state.isValidated && (this.state.scopes === '' || this.state.scopes === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide Scopes.
                                                     </Form.Control.Feedback>
@@ -362,7 +381,7 @@ class ClientDetails extends Component {
                                                     FHIR Server Base URL:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="FHIR Server Base URL" name="fhirServerBaseURL" required onChange={e => this.handleChange(e)} value={this.state.fhirServerBaseURL} />
+                                                    <Form.Control type="text" placeholder="FHIR Server Base URL" name="fhirServerBaseURL" required onChange={e => this.handleChange(e)} value={this.state.fhirServerBaseURL}  isInvalid={this.state.isValidated && (this.state.fhirServerBaseURL === '' || this.state.fhirServerBaseURL === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a FHIR Server Base URL.
                                                     </Form.Control.Feedback>
@@ -427,7 +446,7 @@ class ClientDetails extends Component {
                                                             Direct Host:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Direct Host" name="directHost" required={this.state.directType === 'direct' ? true : false} onChange={e => this.handleChange(e)} value={this.state.directHost} />
+                                                            <Form.Control type="text" placeholder="Direct Host" name="directHost" required={this.state.directType === 'direct' ? true : false} onChange={e => this.handleChange(e)} value={this.state.directHost} isInvalid={this.state.isValidated && (this.state.directHost === '' || this.state.directHost === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a Direct Host name.
                                                             </Form.Control.Feedback>
@@ -440,7 +459,7 @@ class ClientDetails extends Component {
                                                             Direct Sender User Name:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Direct Sender User Name" required={this.state.directType === 'direct' ? true : false} name="directUserName" onChange={e => this.handleChange(e)} value={this.state.directUserName} />
+                                                            <Form.Control type="text" placeholder="Direct Sender User Name" required={this.state.directType === 'direct' ? true : false} name="directUserName" onChange={e => this.handleChange(e)} value={this.state.directUserName} isInvalid={this.state.isValidated && (this.state.directUserName === '' || this.state.directUserName === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a Direct Sender User Name.
                                                             </Form.Control.Feedback>
@@ -452,7 +471,7 @@ class ClientDetails extends Component {
                                                             Direct Sender Password:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="password" name="directPwd" placeholder="Direct Sender Password" required={this.state.directType === 'direct' ? true : false} onChange={e => this.handleChange(e)} value={this.state.directPwd} />
+                                                            <Form.Control type="password" name="directPwd" placeholder="Direct Sender Password" required={this.state.directType === 'direct' ? true : false} onChange={e => this.handleChange(e)} value={this.state.directPwd} isInvalid={this.state.isValidated && (this.state.directPwd === '' || this.state.directPwd === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a Direct Password.
                                                             </Form.Control.Feedback>
@@ -464,7 +483,7 @@ class ClientDetails extends Component {
                                                             Direct Recipient Address:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" name="directRecipientAddress" required={this.state.directType === 'direct' ? true : false} placeholder="Direct Receipient Address" onChange={e => this.handleChange(e)} value={this.state.directRecipientAddress} />
+                                                            <Form.Control type="text" name="directRecipientAddress" required={this.state.directType === 'direct' ? true : false} placeholder="Direct Receipient Address" onChange={e => this.handleChange(e)} value={this.state.directRecipientAddress} isInvalid={this.state.isValidated && (this.state.directRecipientAddress === '' || this.state.directRecipientAddress === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a Direct Recipient Address.
                                                             </Form.Control.Feedback>
@@ -475,7 +494,7 @@ class ClientDetails extends Component {
                                                             SMTP Port:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" name="smtpPort" required={this.state.directType === 'direct' ? true : false} placeholder="SMTP Port" onChange={e => this.handleChange(e)} value={this.state.smtpPort} />
+                                                            <Form.Control type="text" name="smtpPort" required={this.state.directType === 'direct' ? true : false} placeholder="SMTP Port" onChange={e => this.handleChange(e)} value={this.state.smtpPort} isInvalid={this.state.isValidated && (this.state.smtpPort === '' || this.state.smtpPort === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a SMTP Port.
                                                             </Form.Control.Feedback>
@@ -486,7 +505,7 @@ class ClientDetails extends Component {
                                                             IMAP Port:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" name="imapPort" required={this.state.directType === 'direct' ? true : false} placeholder="IMAP Port" onChange={e => this.handleChange(e)} value={this.state.imapPort} />
+                                                            <Form.Control type="text" name="imapPort" required={this.state.directType === 'direct' ? true : false} placeholder="IMAP Port" onChange={e => this.handleChange(e)} value={this.state.imapPort} isInvalid={this.state.isValidated && (this.state.imapPort === '' || this.state.imapPort === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a IMAP Port.
                                                             </Form.Control.Feedback>
@@ -502,7 +521,7 @@ class ClientDetails extends Component {
                                                             XDR Recipient Address:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="XDR Recipient Address" required={this.state.directType === 'xdr' ? true : false} name="xdrRecipientAddress" onChange={e => this.handleChange(e)} value={this.state.xdrRecipientAddress} />
+                                                            <Form.Control type="text" placeholder="XDR Recipient Address" required={this.state.directType === 'xdr' ? true : false} name="xdrRecipientAddress" onChange={e => this.handleChange(e)} value={this.state.xdrRecipientAddress} isInvalid={this.state.isValidated && (this.state.xdrRecipientAddress === '' || this.state.xdrRecipientAddress === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a XDR Recipient Address.
                                                             </Form.Control.Feedback>
@@ -518,7 +537,7 @@ class ClientDetails extends Component {
                                                             Rest API URL:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.directType === 'restApi' ? true : false} name="restAPIURL" onChange={e => this.handleChange(e)} value={this.state.restAPIURL} />
+                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.directType === 'restApi' ? true : false} name="restAPIURL" onChange={e => this.handleChange(e)} value={this.state.restAPIURL} isInvalid={this.state.isValidated && (this.state.restAPIURL === '' || this.state.restAPIURL === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide Rest API URL.
                                                             </Form.Control.Feedback>
@@ -574,7 +593,7 @@ class ClientDetails extends Component {
                                                     Assigning Authority Id:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="Assigning Authority Id" required name="assigningAuthorityId" onChange={e => this.handleChange(e)} value={this.state.assigningAuthorityId} />
+                                                    <Form.Control type="text" placeholder="Assigning Authority Id" required name="assigningAuthorityId" onChange={e => this.handleChange(e)} value={this.state.assigningAuthorityId} isInvalid={this.state.isValidated && (this.state.assigningAuthorityId === '' || this.state.assigningAuthorityId === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Assigning Authority Id.
                                                     </Form.Control.Feedback>
@@ -586,7 +605,7 @@ class ClientDetails extends Component {
                                                     Encounter Start Time Threshold:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="Encounter Start Time Threshold" required name="startThreshold" onChange={e => this.handleChange(e)} value={this.state.startThreshold} />
+                                                    <Form.Control type="text" placeholder="Encounter Start Time Threshold" required name="startThreshold" onChange={e => this.handleChange(e)} value={this.state.startThreshold} isInvalid={this.state.isValidated && (this.state.startThreshold === '' || this.state.startThreshold === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Encounter Start Time Threshold.
                                                     </Form.Control.Feedback>
@@ -598,7 +617,7 @@ class ClientDetails extends Component {
                                                     Encounter End Time Threshold:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="Encounter End Time Threshold" required name="endThreshold" onChange={e => this.handleChange(e)} value={this.state.endThreshold} />
+                                                    <Form.Control type="text" placeholder="Encounter End Time Threshold" required name="endThreshold" onChange={e => this.handleChange(e)} value={this.state.endThreshold} isInvalid={this.state.isValidated && (this.state.endThreshold === '' || this.state.endThreshold === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Encounter End Time Threshold.
                                                     </Form.Control.Feedback>

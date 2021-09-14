@@ -18,8 +18,11 @@ class HealthCareSettings extends Component {
             isValidated:false,
             isChecked: false,
             karFhirServerURLList:[],
+            karsByHsIdList:[],
             isKarFhirServerURLSelected:false,
-            selectedKARDetails:[]
+            selectedKARDetails:[],
+            outputFormats:["FHIR","CDA","Both","Unknown"],
+            hsKARStatus:[]
         };
         this.selectedHealthCareSettings = this.props.selectedHealthCareSettings;
         console.log(this.props.addNewHealthCare);
@@ -43,13 +46,14 @@ class HealthCareSettings extends Component {
             this.state.restAPIURL= this.selectedHealthCareSettings.restApiUrl;
             this.state.startThreshold = this.selectedHealthCareSettings.encounterStartThreshold;
             this.state.endThreshold = this.selectedHealthCareSettings.encounterEndThreshold;
-
             this.getKARs();
+            this.getKARSByHsId(this.selectedHealthCareSettings.id);
         } else {
             this.state.authType = 'SofProvider';
         }
         this.state.isSaved = false;
         this.saveHealthCareSettings = this.saveHealthCareSettings.bind(this);
+        // this.saveKARSWithHealthCareSettings = this.saveKARSWithHealthCareSettings(this);
         this.handleRadioChange = this.handleRadioChange.bind(this);
         this.handleDirectChange = this.handleDirectChange.bind(this);
         this.handleReportChange = this.handleReportChange.bind(this);
@@ -100,6 +104,48 @@ class HealthCareSettings extends Component {
             });
     }
 
+    getKARSByHsId(hsId){
+        console.log("clicked");
+        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/karStatusByHsId?hsId="+hsId, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    const errorMessage = response.json();
+                    console.log(errorMessage);
+                    store.addNotification({
+                        title: '' + response.status + '',
+                        message: 'Error in fetching the KARs By HsId',
+                        type: 'danger',
+                        insert: 'bottom',
+                        container: 'bottom-right',
+                        animationIn: ['animated', 'fadeIn'],
+                        animationOut: ['animated', 'fadeOut'],
+                        dismiss: {
+                            duration: 5000,
+                            click: true,
+                            onScreen: true
+                        }
+                    });
+                    return;
+                }
+            })
+            .then(result => {
+                if (result) {
+                    console.log(result);
+                    this.setState({
+                        karsByHsIdList:result
+                    })
+                }
+
+            });
+    }
+
     isEmpty(obj) {
         for (var key in obj) {
             if (obj.hasOwnProperty(key))
@@ -133,14 +179,44 @@ class HealthCareSettings extends Component {
     }
 
     async handleKARChange(e){
+        console.log(this.state.karsByHsIdList);
+        const karsByHsIdList = this.state.karsByHsIdList;
+        console.log(this.state.karFhirServerURLList)
+        console.log(e.target.value);
         let kARDetails = this.state.karFhirServerURLList.filter(x=> {
             return x.id== e.target.value;
         });
+        const karInfoList = kARDetails[0].karsInfo;
+        karInfoList.sort(function(a, b) { 
+            return b.id - a.id;
+          });
+        for(var i=0; i<karsByHsIdList.length; i++){
+            const versionAndKarIdArr = karsByHsIdList[i].versionUniqueKarId.split("|");
+            console.log(versionAndKarIdArr[0]);
+            console.log(versionAndKarIdArr[1]);
+            karInfoList.filter(x=>{
+                if(x.karId === versionAndKarIdArr[0] && x.karVersion === versionAndKarIdArr[1]){
+                    x['isActive'] = karsByHsIdList[i].isActive;
+                    x['subscriptionsEnabled'] = karsByHsIdList[i].subscriptionsEnabled;
+                    x['outputFormat'] = karsByHsIdList[i].outputFormat;
+                }
+            })
+        }
+        console.log(karInfoList);
         await this.setState({
              karFhirServerURL: e.target.value,
              isKarFhirServerURLSelected: true,
-             selectedKARDetails: kARDetails[0].kars_info
+             selectedKARDetails: karInfoList
         })
+        
+        console.log(this.state.selectedKARDetails);
+    }
+
+    handleOutputFormatChange(e,rowData){
+        console.log(e.target.value);
+        console.log(rowData);
+        rowData['outputFormat'] = e.target.value;
+        rowData['isChanged'] = true;
     }
 
     handleToggleButton(e) {
@@ -154,9 +230,27 @@ class HealthCareSettings extends Component {
         console.log(this.state);
     }
 
-    handleCheckboxChange(e,rowData){
+    handleCheckboxChange(e,rowData,columnType){
         console.log(e.target.checked);
         console.log(rowData);
+        console.log(columnType);
+        if(columnType === "Activation"){
+            rowData['isActive'] = e.target.checked;
+            rowData['isChanged'] = true;
+        } 
+        if(columnType === "EnableSubscriptions"){
+            rowData['subscriptionsEnabled'] = e.target.checked;
+            rowData['isChanged'] = true;
+        }
+        console.log(rowData);
+        this.state.selectedKARDetails.filter(x=>{
+            if(x.id === rowData.id && rowData.isChanged){
+                x = rowData;
+            }
+        })
+        this.setState({
+            selectedKARDetails:[ ...this.state.selectedKARDetails ]
+        })
     }
 
     openHealthCareSettingsList() {
@@ -200,6 +294,7 @@ class HealthCareSettings extends Component {
         }
         console.log(this.geturl());
         console.log(JSON.stringify(healthCareSettings));
+        
         // var serviceURL = this.geturl();
         fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/healthcareSettings", {
             method: requestMethod,
@@ -250,7 +345,7 @@ class HealthCareSettings extends Component {
                     });
                     store.addNotification({
                         title: 'Success',
-                        message: 'Client Details are saved successfully.',
+                        message: 'HealthCare Settings are saved successfully.',
                         type: 'success',
                         insert: 'bottom',
                         container: 'bottom-right',
@@ -262,10 +357,68 @@ class HealthCareSettings extends Component {
                             onScreen: true
                         }
                     });
-
-                    this.openHealthCareSettingsList();
+                    this.saveKARSWithHealthCareSettings();
+                    
                 }
 
+            });
+    }
+
+    saveKARSWithHealthCareSettings() {
+        console.log(this.state.selectedKARDetails);
+        const kars =  this.state.selectedKARDetails;
+        const updatedRows = kars.filter(x=>{
+            return x.isChanged === true;
+        });
+        const hsKARStatus = [];
+        for(var i=0; i<updatedRows.length; i++){
+            const karWithHsObj = {
+                hsId : this.selectedHealthCareSettings.id,
+                karId : updatedRows[i].karId,
+                karVersion : updatedRows[i].karVersion,
+                versionUniqueKarId : updatedRows[i].karId + "|" + updatedRows[i].karVersion,
+                isActive : updatedRows[i].isActive,
+                subscriptionsEnabled : updatedRows[i].subscriptionsEnabled,
+                outputFormat : updatedRows[i].outputFormat
+            }
+            hsKARStatus.push(karWithHsObj);
+        }
+        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/addKARStatus/", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(hsKARStatus)
+        })
+            .then(response => {
+                if (response.status === 200) {
+                    this.setState({
+                        isSaved: true
+                    });
+                    return response.json();
+                } else {
+                    const errorMessage = response.json();
+                    console.log(errorMessage);
+                    store.addNotification({
+                        title: '' + response.status + '',
+                        message: 'Error in Saving the Knowledge Artifacts Status',
+                        type: 'danger',
+                        insert: 'bottom',
+                        container: 'bottom-right',
+                        animationIn: ['animated', 'fadeIn'],
+                        animationOut: ['animated', 'fadeOut'],
+                        dismiss: {
+                            duration: 5000,
+                            click: true,
+                            onScreen: true
+                        }
+                    });
+                    return;
+                }
+            })
+            .then(result => {
+                console.log(result);
+                this.openHealthCareSettingsList();
             });
     }
 
@@ -317,7 +470,7 @@ class HealthCareSettings extends Component {
                         <Button onClick={this.openHealthCareSettingsList}>Existing HealthCareSettings</Button>
                     </Col>
                     <Col md="3" className="clientCol">
-                        <Button onClick={this.openKAR}>Knowledge Artifact Repository</Button>
+                        <Button onClick={this.openKAR}>eCR Specifications/KAR</Button>
                     </Col>
                 </Row>
                 <hr />
@@ -487,7 +640,7 @@ class HealthCareSettings extends Component {
                                 {!this.addNewHealthCare?(
                                 <Card className="accordionCards">
                                     <Accordion.Toggle as={Card.Header} eventKey="3">
-                                        Knowledge Artifact Repository Configuration
+                                        eCR Specifications/KAR Configuration
                                     </Accordion.Toggle>
                                     <Accordion.Collapse eventKey="3">
                                         <Card.Body className="appConfiguration">
@@ -501,7 +654,7 @@ class HealthCareSettings extends Component {
                                                 <option>Select FHIR Server URL</option>
                                                 {this.state.karFhirServerURLList.map(option => (
                                                     <option key={option.id} value={option.id}>
-                                                    {option.fhirServerURL}
+                                                    {option.repoName +" - "+option.fhirServerURL}
                                                     </option>
                                                 ))}
                                             </Form.Control>
@@ -514,28 +667,41 @@ class HealthCareSettings extends Component {
                                             {this.state.isKarFhirServerURLSelected  ? (
                                                 <Row>
                                                 <Col>
-                                                    <Table responsive="lg" striped bordered hover size="sm">
+                                                    <Table responsive="lg" striped bordered hover size="sm" className="karsTable">
                                                         <tbody>
                                                             <tr>
-                                                                <th></th>
-                                                                <th>PlanDefinitionId</th>
+                                                                {/* <th>PlanDefinitionId</th> */}
                                                                 <th>Name</th>
                                                                 <th>Publisher</th>
                                                                 <th>Version</th>
+                                                                <th>Activate</th>
+                                                                <th>Enable Subscriptions</th>
+                                                                <th className="outputFormat">Output Format</th>
                                                             </tr>
                                                             {
                                                                 this.state.selectedKARDetails.map(get =>
-                                                                    <tr key={get.planDefinitionId}>
-                                                                        <td><Form.Check type="checkbox" onChange={(e) => this.handleCheckboxChange(e, get.planDefinitionId)}/></td>
-                                                                        <td>{get.planDefinitionId}</td>
-                                                                        <td>{get.planDefinitionName}</td>
-                                                                        <td>{get.planDefinitionPublisher}</td>
-                                                                        <td>{get.planDefinitionVersion}</td>
+                                                                    <tr key={get.karId}>
+                                                                        {/* <td>{get.karId}</td> */}
+                                                                        <td>{get.karName}</td>
+                                                                        <td>{get.karPublisher}</td>
+                                                                        <td>{get.karVersion}</td>
+                                                                        <td><Form.Check type="checkbox" name="karActive" onChange={(e) => this.handleCheckboxChange(e, get,"Activation")} className="tableCheckboxes" checked={get.isActive}/></td>
+                                                                        <td><Form.Check type="checkbox" name="karSubscribed" onChange={(e) => this.handleCheckboxChange(e, get,"EnableSubscriptions")} className="tableCheckboxes" checked={get.subscriptionsEnabled}/></td>
+                                                                        <td>
+                                                                        <Form.Control as="select" size="sm" defaultValue={get.outputFormat} onChange={e=>this.handleOutputFormatChange(e,get)}>
+                                                                            <option>Select Output Format</option>
+                                                                            {this.state.outputFormats.map(option => (
+                                                                                <option key={option} value={option}>
+                                                                                {option}
+                                                                                </option>
+                                                                            ))}
+                                                                        </Form.Control>
+                                                                        </td>
                                                                     </tr>
                                                                 )
                                                             }
                                                         </tbody>
-                                                    </Table>
+                                                    </Table> 
                                                 </Col>
                                             </Row>
                                                 ):''}

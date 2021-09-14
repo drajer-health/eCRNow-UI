@@ -1,0 +1,16 @@
+.karsTable{
+    font-size: 14px;
+}
+
+.outputFormat{
+    min-width: 185px;
+}
+
+/* .tableCheckboxes input{
+    margin-top: .9rem;
+} */
+
+.karsTable td, .table th {
+    vertical-align: center !important;
+    border-top: 1px solid #dee2e6;
+}

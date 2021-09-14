@@ -86,10 +86,10 @@ class KAR extends Component {
         for(var i=0; i<bundleEntries.length; i++){
           const resource = bundleEntries[i].resource;
           const tableRow = {
-            planDefinitionId: resource.id?resource.id:"",
-            planDefinitionName: resource.name?resource.name:"",
-            planDefinitionPublisher: resource.publisher?resource.publisher:"",
-            planDefinitionVersion: resource.version?resource.version:""
+            karId: resource.id?resource.id:"",
+            karName: resource.name?resource.name:"",
+            karPublisher: resource.publisher?resource.publisher:"",
+            karVersion: resource.version?resource.version:""
           }
           tableEntries.push(tableRow);
         }
@@ -101,6 +101,7 @@ class KAR extends Component {
 
     saveKAR(){
       const karObj = {
+        repoName: this.state.repoName,
         fhirServerURL: this.state.fhirServerURL,
         kars_info: this.state.details
       }
@@ -190,7 +191,7 @@ class KAR extends Component {
                 <br />
                 <Row>
                     <Col md="6">
-                        <h2>Knowledge Artifact Repository</h2>
+                        <h2>eCR Specifications/KAR</h2>
                     </Col>
                     <Col className="addClient">
                         <Button onClick={this.openAddNewHealthCareSettings}>Add New HealthCare Settings</Button>
@@ -210,6 +211,17 @@ class KAR extends Component {
                         <Form >
                                 <Card className="accordionCards">
                                         <Card.Body className="fhirConfiguration">
+                                        <Form.Group as={Row} controlId="formHorizontalClientId">
+                                                <Form.Label column sm={2}>
+                                                    Repository Name:
+                                                </Form.Label>
+                                                <Col sm={8}>
+                                                    <Form.Control type="text" placeholder="Repository Name" name="repoName" required onChange={e => this.handleChange(e)} value={this.state.repoName} />
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide a Repository Name.
+                                                    </Form.Control.Feedback>
+                                                </Col>
+                                            </Form.Group>
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     FHIR Server URL:
@@ -221,7 +233,7 @@ class KAR extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                                 <Col sm={2}>
-                                                <Button type="button" onClick={this.getKARs}>Search KAR</Button>
+                                                <Button type="button" disabled={this.state.repoName == undefined && this.state.fhirServerURL == undefined} onClick={this.getKARs}>Search KAR</Button>
                                                 </Col>
                                             </Form.Group>
                                         </Card.Body>
@@ -239,11 +251,11 @@ class KAR extends Component {
                                               </tr>
                                               {
                                                   this.state.details.map(get =>
-                                                      <tr key={get.planDefinitionId}>
-                                                          <td>{get.planDefinitionId}</td>
-                                                          <td>{get.planDefinitionName}</td>
-                                                          <td>{get.planDefinitionPublisher}</td>
-                                                          <td>{get.planDefinitionVersion}</td>
+                                                      <tr key={get.karId}>
+                                                          <td>{get.karId}</td>
+                                                          <td>{get.karName}</td>
+                                                          <td>{get.karPublisher}</td>
+                                                          <td>{get.karVersion}</td>
                                                       </tr>
                                                   )
                                               }

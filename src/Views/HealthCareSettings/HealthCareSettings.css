@@ -3,7 +3,7 @@
 }
 
 .outputFormat{
-    min-width: 185px;
+    /* min-width: 185px; */
 }
 
 /* .tableCheckboxes input{
@@ -13,4 +13,19 @@
 .karsTable td, .table th {
     vertical-align: center !important;
     border-top: 1px solid #dee2e6;
+}
+
+.karTableName{
+    max-width: 200px !important;
+    line-break:anywhere;
+}
+
+.karTablePublisher{
+    max-width: 220px !important;
+    line-break:anywhere;
+}
+
+.karCheckBoxes{
+    text-align: center;
+    vertical-align: middle !important;
 }

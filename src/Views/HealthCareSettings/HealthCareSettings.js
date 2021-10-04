@@ -36,20 +36,37 @@ class HealthCareSettings extends Component {
         console.log(this.addNewHealthCare);
         console.log(this.selectedHealthCareSettings);
         if (!this.addNewHealthCare && !this.isEmpty(this.selectedHealthCareSettings)) {
-          console.log("Inside If")
+          console.log("Inside If");
+            if (this.selectedHealthCareSettings.isDirect) {
+                this.state.directType = 'direct';
+            }
+            if (this.selectedHealthCareSettings.isXdr) {
+                this.state.directType = 'xdr';
+            }
+            if (this.selectedHealthCareSettings.isRestAPI) {
+                this.state.directType = 'restApi';
+            }
             this.state.authType = this.selectedHealthCareSettings.authType;
             this.state.clientId = this.selectedHealthCareSettings.clientId;
             this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
             this.state.fhirServerBaseURL = this.selectedHealthCareSettings.fhirServerBaseURL;
             this.state.tokenEndpoint = this.selectedHealthCareSettings.tokenUrl;
             this.state.scopes = this.selectedHealthCareSettings.scopes;
-            this.state.restAPIURL= this.selectedHealthCareSettings.restApiUrl;
+            this.state.directHost = this.selectedHealthCareSettings.directHost;
+            this.state.directUserName = this.selectedHealthCareSettings.directUser;
+            this.state.directPwd = this.selectedHealthCareSettings.directPwd;
+            this.state.directRecipientAddress = this.selectedHealthCareSettings.directRecipientAddress;
+            this.state.smtpPort = this.selectedHealthCareSettings.smtpPort;
+            this.state.imapPort = this.selectedHealthCareSettings.imapPort;
+            this.state.restAPIURL= this.selectedHealthCareSettings.restAPIURL;
+            this.state.assigningAuthorityId = this.selectedHealthCareSettings.assigningAuthorityId;
             this.state.startThreshold = this.selectedHealthCareSettings.encounterStartThreshold;
             this.state.endThreshold = this.selectedHealthCareSettings.encounterEndThreshold;
             this.getKARs();
             this.getKARSByHsId(this.selectedHealthCareSettings.id);
         } else {
             this.state.authType = 'SofProvider';
+            this.state.directType = 'direct';
         }
         this.state.isSaved = false;
         this.saveHealthCareSettings = this.saveHealthCareSettings.bind(this);
@@ -198,6 +215,7 @@ class HealthCareSettings extends Component {
                 if(x.karId === versionAndKarIdArr[0] && x.karVersion === versionAndKarIdArr[1]){
                     x['isActive'] = karsByHsIdList[i].isActive;
                     x['subscriptionsEnabled'] = karsByHsIdList[i].subscriptionsEnabled;
+                    x['covidOnly'] = karsByHsIdList[i].covidOnly;
                     x['outputFormat'] = karsByHsIdList[i].outputFormat;
                 }
             })
@@ -242,6 +260,10 @@ class HealthCareSettings extends Component {
             rowData['subscriptionsEnabled'] = e.target.checked;
             rowData['isChanged'] = true;
         }
+        if(columnType === "EnableCovidReporting"){
+            rowData['covidOnly'] = e.target.checked;
+            rowData['isChanged'] = true;
+        }
         console.log(rowData);
         this.state.selectedKARDetails.filter(x=>{
             if(x.id === rowData.id && rowData.isChanged){
@@ -272,16 +294,28 @@ class HealthCareSettings extends Component {
 
     saveHealthCareSettings() {
         console.log("clicked");
+        console.log(this.selectedHealthCareSettings);
         console.log(this.state.xdrRecipientAddress);
         var requestMethod = '';
         var healthCareSettings = {
             authType: this.state.authType,
             clientId: this.state.clientId,
+            isDirect: this.state.directType === "direct" ? true : false,
+            isXdr: this.state.directType === "xdr" ? true : false,
+            isRestAPI: this.state.directType === "restApi" ? true : false,
             clientSecret: this.state.clientSecret && this.state.authType === 'SofSystem' ? this.state.clientSecret : null,
             fhirServerBaseURL: this.state.fhirServerBaseURL,
             tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
-            restApiUrl: this.state.restAPIURL ? this.state.restAPIURL : null,
+            directHost: this.state.directHost && this.state.directType === "direct" ? this.state.directHost : null,
+            directUser: this.state.directUserName && this.state.directType === "direct" ? this.state.directUserName : null,
+            directPwd: this.state.directPwd && this.state.directType === "direct" ? this.state.directPwd : null,
+            smtpPort: this.state.smtpPort && this.state.directType === "direct" ? this.state.smtpPort : null,
+            imapPort: this.state.imapPort && this.state.directType === "direct" ? this.state.imapPort : null,
+            directRecipientAddress: this.state.directRecipientAddress && this.state.directType === "direct" ? this.state.directRecipientAddress : null,
+            xdrRecipientAddress: this.state.xdrRecipientAddress && this.state.directType === "xdr" ? this.state.xdrRecipientAddress : null,
+            restAPIURL: this.state.restAPIURL && this.state.directType === "restApi" ? this.state.restAPIURL : null,
+            assigningAuthorityId : this.state.assigningAuthorityId?this.state.assigningAuthorityId:null,
             encounterStartThreshold: this.state.startThreshold,
             encounterEndThreshold: this.state.endThreshold,
             lastUpdated:new Date()
@@ -357,14 +391,14 @@ class HealthCareSettings extends Component {
                             onScreen: true
                         }
                     });
-                    this.saveKARSWithHealthCareSettings();
+                    this.saveKARSWithHealthCareSettings(this.selectedHealthCareSettings);
                     
                 }
 
             });
     }
 
-    saveKARSWithHealthCareSettings() {
+    saveKARSWithHealthCareSettings(hcs) {
         console.log(this.state.selectedKARDetails);
         const kars =  this.state.selectedKARDetails;
         const updatedRows = kars.filter(x=>{
@@ -379,6 +413,18 @@ class HealthCareSettings extends Component {
                 versionUniqueKarId : updatedRows[i].karId + "|" + updatedRows[i].karVersion,
                 isActive : updatedRows[i].isActive,
                 subscriptionsEnabled : updatedRows[i].subscriptionsEnabled,
+                covidOnly: updatedRows[i].covidOnly,
+                // directHost: hcs.directHost,
+                // directUser: hcs.directUser,
+                // directPwd: hcs.directPwd,
+                // smtpPort: hcs.smtpPort,
+                // imapPort: hcs.imapPort,
+                // directRecipientAddress: hcs.directRecipientAddress,
+                // xdrRecipientAddress: hcs.xdrRecipientAddress,
+                // restAPIURL: hcs.restAPIURL,
+                // assigningAuthorityId:hcs.assigningAuthorityId,
+                // encounterStartThreshold:hcs.encounterStartThreshold,
+                // encounterEndThreshold:hcs.encounterEndThreshold,
                 outputFormat : updatedRows[i].outputFormat
             }
             hsKARStatus.push(karWithHsObj);
@@ -587,17 +633,139 @@ class HealthCareSettings extends Component {
                                     </Accordion.Toggle>
                                     <Accordion.Collapse eventKey="1">
                                         <Card.Body className="transportConfiguration">
+                                        <Form.Group as={Row} controlId="formHorizontalClientId">
+                                                <Form.Label column sm={2}>
+                                                    Direct Type:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Row>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="direct">
+                                                                <Form.Check.Input type="radio" checked={this.state.directType === 'direct'} value="direct" onChange={e => this.handleDirectChange(e)} />
+                                                                <Form.Check.Label>Direct</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="xdr">
+                                                                <Form.Check.Input type="radio" checked={this.state.directType === 'xdr'} value="xdr" onChange={e => this.handleDirectChange(e)} />
+                                                                <Form.Check.Label>XDR</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="restApi">
+                                                                <Form.Check.Input type="radio" checked={this.state.directType === 'restApi'} value="restApi" onChange={e => this.handleDirectChange(e)} />
+                                                                <Form.Check.Label>Rest API</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                            </Form.Group>
+                                            {this.state.directType === 'direct' ? (
+                                                <div>
+                                                    <Form.Group as={Row} controlId="directHost">
+                                                        <Form.Label column sm={2}>
+                                                            Direct Host:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="Direct Host" name="directHost" required={this.state.directType === 'direct' ? true : false} onChange={e => this.handleChange(e)} value={this.state.directHost} isInvalid={this.state.isValidated && (this.state.directHost === '' || this.state.directHost === undefined)}/>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a Direct Host name.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+
+
+                                                    <Form.Group as={Row} controlId="directUserName">
+                                                        <Form.Label column sm={2}>
+                                                            Direct Sender User Name:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="Direct Sender User Name" required={this.state.directType === 'direct' ? true : false} name="directUserName" onChange={e => this.handleChange(e)} value={this.state.directUserName} isInvalid={this.state.isValidated && (this.state.directUserName === '' || this.state.directUserName === undefined)}/>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a Direct Sender User Name.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+
+                                                    <Form.Group as={Row} controlId="directPwd">
+                                                        <Form.Label column sm={2}>
+                                                            Direct Sender Password:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="password" name="directPwd" placeholder="Direct Sender Password" required={this.state.directType === 'direct' ? true : false} onChange={e => this.handleChange(e)} value={this.state.directPwd} isInvalid={this.state.isValidated && (this.state.directPwd === '' || this.state.directPwd === undefined)}/>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a Direct Password.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+
+                                                    <Form.Group as={Row} controlId="directRecipientAddress">
+                                                        <Form.Label column sm={2}>
+                                                            Direct Recipient Address:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" name="directRecipientAddress" required={this.state.directType === 'direct' ? true : false} placeholder="Direct Receipient Address" onChange={e => this.handleChange(e)} value={this.state.directRecipientAddress} isInvalid={this.state.isValidated && (this.state.directRecipientAddress === '' || this.state.directRecipientAddress === undefined)}/>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a Direct Recipient Address.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                    <Form.Group as={Row} controlId="smtpPort">
+                                                        <Form.Label column sm={2}>
+                                                            SMTP Port:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" name="smtpPort" required={this.state.directType === 'direct' ? true : false} placeholder="SMTP Port" onChange={e => this.handleChange(e)} value={this.state.smtpPort} isInvalid={this.state.isValidated && (this.state.smtpPort === '' || this.state.smtpPort === undefined)}/>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a SMTP Port.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                    <Form.Group as={Row} controlId="imapPort">
+                                                        <Form.Label column sm={2}>
+                                                            IMAP Port:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" name="imapPort" required={this.state.directType === 'direct' ? true : false} placeholder="IMAP Port" onChange={e => this.handleChange(e)} value={this.state.imapPort} isInvalid={this.state.isValidated && (this.state.imapPort === '' || this.state.imapPort === undefined)}/>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a IMAP Port.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                </div>
+                                            ) : ''}
+
+                                            {this.state.directType === 'xdr' ? (
+                                                <div>
+                                                    <Form.Group as={Row} controlId="xdrRecipientAddress">
+                                                        <Form.Label column sm={2}>
+                                                            XDR Recipient Address:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="XDR Recipient Address" required={this.state.directType === 'xdr' ? true : false} name="xdrRecipientAddress" onChange={e => this.handleChange(e)} value={this.state.xdrRecipientAddress} isInvalid={this.state.isValidated && (this.state.xdrRecipientAddress === '' || this.state.xdrRecipientAddress === undefined)}/>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a XDR Recipient Address.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                </div>
+                                            ) : ''}
+
+                                            {this.state.directType === 'restApi' ? (
+                                                <div>
                                                     <Form.Group as={Row} controlId="restAPIURL">
                                                         <Form.Label column sm={2}>
                                                             Rest API URL:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Rest API URL" required name="restAPIURL" onChange={e => this.handleChange(e)} value={this.state.restAPIURL} isInvalid={this.state.isValidated && (this.state.restAPIURL === '' || this.state.restAPIURL === undefined)}/>
+                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.directType === 'restApi' ? true : false} name="restAPIURL" onChange={e => this.handleChange(e)} value={this.state.restAPIURL} isInvalid={this.state.isValidated && (this.state.restAPIURL === '' || this.state.restAPIURL === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide Rest API URL.
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
+                                                </div>
+                                            ) : ''}
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>
@@ -608,6 +776,18 @@ class HealthCareSettings extends Component {
                                     </Accordion.Toggle>
                                     <Accordion.Collapse eventKey="2">
                                         <Card.Body className="appConfiguration">
+
+                                            <Form.Group as={Row} controlId="assigningAuthorityId">
+                                                <Form.Label column sm={2}>
+                                                    Assigning Authority Id:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Assigning Authority Id" required name="assigningAuthorityId" onChange={e => this.handleChange(e)} value={this.state.assigningAuthorityId} isInvalid={this.state.isValidated && (this.state.assigningAuthorityId === '' || this.state.assigningAuthorityId === undefined)}/>
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide a Assigning Authority Id.
+                                                    </Form.Control.Feedback>
+                                                </Col>
+                                            </Form.Group>
 
                                             <Form.Group as={Row} controlId="startThreshold">
                                                 <Form.Label column sm={2}>
@@ -676,17 +856,19 @@ class HealthCareSettings extends Component {
                                                                 <th>Version</th>
                                                                 <th>Activate</th>
                                                                 <th>Enable Subscriptions</th>
+                                                                <th>Only Covid?</th>
                                                                 <th className="outputFormat">Output Format</th>
                                                             </tr>
                                                             {
                                                                 this.state.selectedKARDetails.map(get =>
                                                                     <tr key={get.karId}>
                                                                         {/* <td>{get.karId}</td> */}
-                                                                        <td>{get.karName}</td>
-                                                                        <td>{get.karPublisher}</td>
+                                                                        <td className="karTableName">{get.karName}</td>
+                                                                        <td className="karTablePublisher">{get.karPublisher}</td>
                                                                         <td>{get.karVersion}</td>
-                                                                        <td><Form.Check type="checkbox" name="karActive" onChange={(e) => this.handleCheckboxChange(e, get,"Activation")} className="tableCheckboxes" checked={get.isActive}/></td>
-                                                                        <td><Form.Check type="checkbox" name="karSubscribed" onChange={(e) => this.handleCheckboxChange(e, get,"EnableSubscriptions")} className="tableCheckboxes" checked={get.subscriptionsEnabled}/></td>
+                                                                        <td className="karCheckBoxes"><Form.Check type="checkbox" name="karActive" onChange={(e) => this.handleCheckboxChange(e, get,"Activation")} className="tableCheckboxes" checked={get.isActive}/></td>
+                                                                        <td className="karCheckBoxes"><Form.Check type="checkbox" name="karSubscribed" onChange={(e) => this.handleCheckboxChange(e, get,"EnableSubscriptions")} className="tableCheckboxes" checked={get.subscriptionsEnabled}/></td>
+                                                                        <td className="karCheckBoxes"><Form.Check type="checkbox" name="covidEnabled" onChange={(e) => this.handleCheckboxChange(e, get,"EnableCovidReporting")} className="tableCheckboxes" checked={get.covidOnly}/></td>
                                                                         <td>
                                                                         <Form.Control as="select" size="sm" defaultValue={get.outputFormat} onChange={e=>this.handleOutputFormatChange(e,get)}>
                                                                             <option>Select Output Format</option>

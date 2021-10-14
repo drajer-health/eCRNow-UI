@@ -21,7 +21,7 @@ class HealthCareSettings extends Component {
             karsByHsIdList:[],
             isKarFhirServerURLSelected:false,
             selectedKARDetails:[],
-            outputFormats:["FHIR","CDA","Both","Unknown"],
+            outputFormats:["FHIR","CDA_R11","CDA_R30","Both"],
             hsKARStatus:[]
         };
         this.selectedHealthCareSettings = this.props.selectedHealthCareSettings;
@@ -37,6 +37,20 @@ class HealthCareSettings extends Component {
         console.log(this.selectedHealthCareSettings);
         if (!this.addNewHealthCare && !this.isEmpty(this.selectedHealthCareSettings)) {
           console.log("Inside If");
+            if (this.selectedHealthCareSettings.authType === 'SofProvider') {
+                this.state.authType = this.selectedHealthCareSettings.authType;
+                this.state.clientId = this.selectedHealthCareSettings.clientId;
+            }
+            if (this.selectedHealthCareSettings.authType === 'SofSystem') {
+                this.state.authType = this.selectedHealthCareSettings.authType;
+                this.state.clientId = this.selectedHealthCareSettings.clientId;
+                this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
+            }
+            if (this.selectedHealthCareSettings.authType === 'userAccountLaunch') {
+                this.state.authType = this.selectedHealthCareSettings.authType;
+                this.state.username = this.selectedHealthCareSettings.clientId;
+                this.state.password = this.selectedHealthCareSettings.clientSecret;
+            }
             if (this.selectedHealthCareSettings.isDirect) {
                 this.state.directType = 'direct';
             }
@@ -46,7 +60,7 @@ class HealthCareSettings extends Component {
             if (this.selectedHealthCareSettings.isRestAPI) {
                 this.state.directType = 'restApi';
             }
-            this.state.authType = this.selectedHealthCareSettings.authType;
+            
             this.state.clientId = this.selectedHealthCareSettings.clientId;
             this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
             this.state.fhirServerBaseURL = this.selectedHealthCareSettings.fhirServerBaseURL;
@@ -58,7 +72,7 @@ class HealthCareSettings extends Component {
             this.state.directRecipientAddress = this.selectedHealthCareSettings.directRecipientAddress;
             this.state.smtpPort = this.selectedHealthCareSettings.smtpPort;
             this.state.imapPort = this.selectedHealthCareSettings.imapPort;
-            this.state.restAPIURL= this.selectedHealthCareSettings.restAPIURL;
+            this.state.restApiUrl= this.selectedHealthCareSettings.restApiUrl;
             this.state.assigningAuthorityId = this.selectedHealthCareSettings.assigningAuthorityId;
             this.state.startThreshold = this.selectedHealthCareSettings.encounterStartThreshold;
             this.state.endThreshold = this.selectedHealthCareSettings.encounterEndThreshold;
@@ -178,8 +192,19 @@ class HealthCareSettings extends Component {
     }
 
     handleRadioChange(e) {
+        if(e.target.value === "userAccountLaunch"){
+            this.setState({
+                clientId:''
+            })
+        }
+        if(e.target.value === "SofProvider" || e.target.value === "SofSystem"){
+            this.setState({
+                username:'',
+                password:''
+            })
+        }
         this.setState({
-          authType: e.target.value
+            authType: e.target.value
         });
     }
 
@@ -299,11 +324,11 @@ class HealthCareSettings extends Component {
         var requestMethod = '';
         var healthCareSettings = {
             authType: this.state.authType,
-            clientId: this.state.clientId,
+            clientId: this.state.authType === "userAccountLaunch"?this.state.username:this.state.clientId,
             isDirect: this.state.directType === "direct" ? true : false,
             isXdr: this.state.directType === "xdr" ? true : false,
             isRestAPI: this.state.directType === "restApi" ? true : false,
-            clientSecret: this.state.clientSecret && this.state.authType === 'SofSystem' ? this.state.clientSecret : null,
+            clientSecret: this.state.clientSecret && this.state.authType === 'SofSystem'  ? this.state.clientSecret : this.state.password,
             fhirServerBaseURL: this.state.fhirServerBaseURL,
             tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
@@ -314,7 +339,7 @@ class HealthCareSettings extends Component {
             imapPort: this.state.imapPort && this.state.directType === "direct" ? this.state.imapPort : null,
             directRecipientAddress: this.state.directRecipientAddress && this.state.directType === "direct" ? this.state.directRecipientAddress : null,
             xdrRecipientAddress: this.state.xdrRecipientAddress && this.state.directType === "xdr" ? this.state.xdrRecipientAddress : null,
-            restAPIURL: this.state.restAPIURL && this.state.directType === "restApi" ? this.state.restAPIURL : null,
+            restApiUrl: this.state.restApiUrl && this.state.directType === "restApi" ? this.state.restApiUrl : null,
             assigningAuthorityId : this.state.assigningAuthorityId?this.state.assigningAuthorityId:null,
             encounterStartThreshold: this.state.startThreshold,
             encounterEndThreshold: this.state.endThreshold,
@@ -375,7 +400,7 @@ class HealthCareSettings extends Component {
                         scopes: "",
                         startThreshold: "",
                         endThreshold: "",
-                        restAPIURL: ""
+                        restApiUrl: ""
                     });
                     store.addNotification({
                         title: 'Success',
@@ -411,9 +436,9 @@ class HealthCareSettings extends Component {
                 karId : updatedRows[i].karId,
                 karVersion : updatedRows[i].karVersion,
                 versionUniqueKarId : updatedRows[i].karId + "|" + updatedRows[i].karVersion,
-                isActive : updatedRows[i].isActive,
-                subscriptionsEnabled : updatedRows[i].subscriptionsEnabled,
-                covidOnly: updatedRows[i].covidOnly,
+                isActive : updatedRows[i].isActive?updatedRows[i].isActive:false,
+                subscriptionsEnabled : updatedRows[i].subscriptionsEnabled?updatedRows[i].subscriptionsEnabled:false,
+                covidOnly: updatedRows[i].covidOnly?updatedRows[i].covidOnly:false,
                 // directHost: hcs.directHost,
                 // directUser: hcs.directUser,
                 // directPwd: hcs.directPwd,
@@ -421,7 +446,7 @@ class HealthCareSettings extends Component {
                 // imapPort: hcs.imapPort,
                 // directRecipientAddress: hcs.directRecipientAddress,
                 // xdrRecipientAddress: hcs.xdrRecipientAddress,
-                // restAPIURL: hcs.restAPIURL,
+                // restApiUrl: hcs.restApiUrl,
                 // assigningAuthorityId:hcs.assigningAuthorityId,
                 // encounterStartThreshold:hcs.encounterStartThreshold,
                 // encounterEndThreshold:hcs.encounterEndThreshold,
@@ -556,9 +581,16 @@ class HealthCareSettings extends Component {
                                                                 <Form.Check.Label>System Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="userAccountLaunch">
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'userAccountLaunch'} value="userAccountLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Label>Username & Password</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
+                                            {this.state.authType === 'SofSystem' || this.state.authType === 'SofProvider' ? (
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     Client Id:
@@ -569,7 +601,19 @@ class HealthCareSettings extends Component {
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
                                                 </Col>
+                                            </Form.Group>):(
+                                                <Form.Group as={Row} controlId="formHorizontalClientId">
+                                                <Form.Label column sm={2}>
+                                                    Username:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Username" name="username" required onChange={e => this.handleChange(e)} value={this.state.username} />
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide a Username.
+                                                    </Form.Control.Feedback>
+                                                </Col>
                                             </Form.Group>
+                                            )}
 
                                             {this.state.authType === 'SofSystem' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
@@ -580,6 +624,20 @@ class HealthCareSettings extends Component {
                                                         <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Client Secret.
+                                                        </Form.Control.Feedback>
+                                                    </Col>
+                                                </Form.Group>
+                                            ) : ''}
+
+                                            {this.state.authType === 'userAccountLaunch' ? (
+                                                <Form.Group as={Row} controlId="formHorizontalClientSecret">
+                                                    <Form.Label column sm={2}>
+                                                        Password:
+                                                    </Form.Label>
+                                                    <Col sm={10}>
+                                                        <Form.Control type="password" placeholder="Password" name="password" required={this.state.launchType === 'userAccountLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
+                                                        <Form.Control.Feedback type="invalid">
+                                                            Please provide a Password.
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
@@ -609,20 +667,20 @@ class HealthCareSettings extends Component {
                                                 </Col>
                                             </Form.Group>
 
-                                            {this.state.authType === 'SofSystem' ? (
+                                            
                                                 <Form.Group as={Row} controlId="formHorizontalTokenURL">
                                                     <Form.Label column sm={2}>
                                                         Token Endpoint:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} isInvalid={this.state.isValidated && (this.state.tokenEndpoint === '' || this.state.tokenEndpoint === undefined)}/>
+                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint"  onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} isInvalid={this.state.isValidated && (this.state.tokenEndpoint === '' || this.state.tokenEndpoint === undefined)}/>
 
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a FHIR Server Token URL.
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
-                                            ) : ''} 
+                                            
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>
@@ -753,12 +811,12 @@ class HealthCareSettings extends Component {
 
                                             {this.state.directType === 'restApi' ? (
                                                 <div>
-                                                    <Form.Group as={Row} controlId="restAPIURL">
+                                                    <Form.Group as={Row} controlId="restApiUrl">
                                                         <Form.Label column sm={2}>
                                                             Rest API URL:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.directType === 'restApi' ? true : false} name="restAPIURL" onChange={e => this.handleChange(e)} value={this.state.restAPIURL} isInvalid={this.state.isValidated && (this.state.restAPIURL === '' || this.state.restAPIURL === undefined)}/>
+                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.directType === 'restApi' ? true : false} name="restApiUrl" onChange={e => this.handleChange(e)} value={this.state.restApiUrl} isInvalid={this.state.isValidated && (this.state.restApiUrl === '' || this.state.restApiUrl === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide Rest API URL.
                                                             </Form.Control.Feedback>

@@ -50,7 +50,9 @@ class ClientDetails extends Component {
             this.state.directUserName = this.selectedClientDetails.directUser;
             this.state.directPwd = this.selectedClientDetails.directPwd;
             this.state.directRecipientAddress = this.selectedClientDetails.directRecipientAddress;
+            this.state.smtpUrl = this.selectedClientDetails.smtpUrl;
             this.state.smtpPort = this.selectedClientDetails.smtpPort;
+            this.state.imapUrl = this.selectedClientDetails.imapUrl;
             this.state.imapPort = this.selectedClientDetails.imapPort;
             this.state.restAPIURL= this.selectedClientDetails.restAPIURL;
             this.state.xdrRecipientAddress = this.selectedClientDetails.xdrRecipientAddress;
@@ -167,7 +169,9 @@ class ClientDetails extends Component {
             directHost: this.state.directHost && this.state.directType === "direct" ? this.state.directHost : null,
             directUser: this.state.directUserName && this.state.directType === "direct" ? this.state.directUserName : null,
             directPwd: this.state.directPwd && this.state.directType === "direct" ? this.state.directPwd : null,
+            smtpUrl: this.state.smtpUrl && this.state.directType === "direct" ? this.state.smtpUrl : null,
             smtpPort: this.state.smtpPort && this.state.directType === "direct" ? this.state.smtpPort : null,
+            imapUrl: this.state.imapUrl && this.state.directType === "direct" ? this.state.imapUrl : null,
             imapPort: this.state.imapPort && this.state.directType === "direct" ? this.state.imapPort : null,
             directRecipientAddress: this.state.directRecipientAddress && this.state.directType === "direct" ? this.state.directRecipientAddress : null,
             xdrRecipientAddress: this.state.xdrRecipientAddress && this.state.directType === "xdr" ? this.state.xdrRecipientAddress : null,
@@ -483,7 +487,7 @@ class ClientDetails extends Component {
                                                             Direct Host:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Direct Host" name="directHost" required={this.state.directType === 'direct' ? true : false} onChange={e => this.handleChange(e)} value={this.state.directHost} />
+                                                            <Form.Control type="text" placeholder="Direct Host" name="directHost" onChange={e => this.handleChange(e)} value={this.state.directHost} />
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a Direct Host name.
                                                             </Form.Control.Feedback>
@@ -526,6 +530,17 @@ class ClientDetails extends Component {
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
+                                                    <Form.Group as={Row} controlId="smtpUrl">
+                                                        <Form.Label column sm={2}>
+                                                            SMTP URL:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" name="smtpUrl" placeholder="SMTP URL" onChange={e => this.handleChange(e)} value={this.state.smtpUrl} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a SMTP URL.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
                                                     <Form.Group as={Row} controlId="smtpPort">
                                                         <Form.Label column sm={2}>
                                                             SMTP Port:
@@ -534,6 +549,17 @@ class ClientDetails extends Component {
                                                             <Form.Control type="text" name="smtpPort" required={this.state.directType === 'direct' ? true : false} placeholder="SMTP Port" onChange={e => this.handleChange(e)} value={this.state.smtpPort} />
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a SMTP Port.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                    <Form.Group as={Row} controlId="imapUrl">
+                                                        <Form.Label column sm={2}>
+                                                            IMAP Port:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" name="imapUrl" placeholder="IMAP URL" onChange={e => this.handleChange(e)} value={this.state.imapUrl} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a IMAP URL.
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>

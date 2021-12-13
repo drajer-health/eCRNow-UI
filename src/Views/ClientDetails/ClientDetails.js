@@ -55,6 +55,7 @@ class ClientDetails extends Component {
             this.state.imapUrl = this.selectedClientDetails.imapUrl;
             this.state.imapPort = this.selectedClientDetails.imapPort;
             this.state.restAPIURL= this.selectedClientDetails.restAPIURL;
+            this.state.rrRestAPIUrl = this.selectedClientDetails.rrRestAPIUrl;
             this.state.xdrRecipientAddress = this.selectedClientDetails.xdrRecipientAddress;
             this.state.assigningAuthorityId = this.selectedClientDetails.assigningAuthorityId;
             this.state.startThreshold = this.selectedClientDetails.encounterStartThreshold;
@@ -65,6 +66,15 @@ class ClientDetails extends Component {
             if (this.selectedClientDetails.isFullEcr) {
                 this.state.reportType = "fullecr";
             }
+            if (this.selectedClientDetails.isCreateDocRef) {
+                this.state.rrProcessingType = "createDocRef";
+            }
+            if (this.selectedClientDetails.isInvokeRestAPI) {
+                this.state.rrProcessingType = "invokeRestAPI";
+            }
+            if (this.selectedClientDetails.isBoth) {
+                this.state.rrProcessingType = "both";
+            }
             if(this.selectedClientDetails.debugFhirQueryAndEicr){
                 this.state.isChecked =true;
             }
@@ -72,12 +82,14 @@ class ClientDetails extends Component {
             this.state.launchType = 'providerLaunch';
             this.state.directType = 'direct';
             this.state.reportType = 'covid19';
+            this.state.rrProcessingType = 'createDocRef';
         }
         this.state.isSaved = false;
         this.saveClientDetails = this.saveClientDetails.bind(this);
         this.handleRadioChange = this.handleRadioChange.bind(this);
         this.handleDirectChange = this.handleDirectChange.bind(this);
         this.handleReportChange = this.handleReportChange.bind(this);
+        this.handleRRProcessingChange = this.handleRRProcessingChange.bind(this);
         this.openClientDetailsList = this.openClientDetailsList.bind(this);
     }
 
@@ -121,6 +133,12 @@ class ClientDetails extends Component {
     handleReportChange(e) {
         this.setState({
             reportType: e.target.value
+        });
+    }
+
+    handleRRProcessingChange(e) {
+        this.setState({
+            rrProcessingType: e.target.value
         });
     }
 
@@ -181,6 +199,10 @@ class ClientDetails extends Component {
             encounterEndThreshold: this.state.endThreshold,
             isCovid: this.state.reportType === "covid19" ? true : false,
             isFullEcr: this.state.reportType === "fullecr" ? true : false,
+            isCreateDocRef : this.state.rrProcessingType === 'createDocRef'?true:false,
+            isInvokeRestAPI : this.state.rrProcessingType === 'invokeRestAPI' ? true: false,
+            isBoth: this.state.rrProcessingType === 'both' ? true : false,
+            rrRestAPIUrl : this.state.rrRestAPIUrl,
             debugFhirQueryAndEicr: this.state.isLoggingEnabled ? this.state.isLoggingEnabled : false,
             lastUpdated:new Date()
             // tokenIntrospectionURL: this.state.tokenIntrospectionURL ? this.state.tokenIntrospectionURL : null,
@@ -250,6 +272,7 @@ class ClientDetails extends Component {
                         startThreshold: "",
                         endThreshold: "",
                         reportType: "covid19",
+                        rrProcessingType: "createDocRef",
                         ersdFileLocation: "",
                         schematronLocation: ""
                     });
@@ -686,6 +709,50 @@ class ClientDetails extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
+
+                                            <Form.Group as={Row} controlId="rrProcessing">
+                                                <Form.Label column sm={2}>
+                                                    RR Processing:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Row>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="createDocRef">
+                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'createDocRef'} value="createDocRef" onChange={e => this.handleRRProcessingChange(e)} />
+                                                                <Form.Check.Label>Create Document Reference</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="invokeRestAPI">
+                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'invokeRestAPI'} value="invokeRestAPI" onChange={e => this.handleRRProcessingChange(e)} />
+                                                                <Form.Check.Label>Invoke Rest API</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="both">
+                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'both'} value="both" onChange={e => this.handleRRProcessingChange(e)} />
+                                                                <Form.Check.Label>Both</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                            </Form.Group>
+                                            
+                                            {this.state.rrProcessingType === 'invokeRestAPI' || this.state.rrProcessingType === 'both' ? (
+                                                <div>
+                                                    <Form.Group as={Row} controlId="rrRestAPIUrl">
+                                                        <Form.Label column sm={2}>
+                                                            RR Rest API URL:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="RR Rest API URL" required={this.state.rrProcessingType === 'invokeRestAPI' || this.state.rrProcessingType === 'both' ? true : false} name="rrRestAPIUrl" onChange={e => this.handleChange(e)} value={this.state.rrRestAPIUrl} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a RR Rest API URL.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                </div>
+                                            ) : ''}
 
                                             <Form.Group as={Row} controlId="reportType">
                                                 <Form.Label column sm={2}>

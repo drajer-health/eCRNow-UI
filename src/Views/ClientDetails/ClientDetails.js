@@ -60,6 +60,7 @@ class ClientDetails extends Component {
             this.state.assigningAuthorityId = this.selectedClientDetails.assigningAuthorityId;
             this.state.startThreshold = this.selectedClientDetails.encounterStartThreshold;
             this.state.endThreshold = this.selectedClientDetails.encounterEndThreshold;
+            this.state.rrDocRefMimeType = this.selectedClientDetails.rrDocRefMimeType;
             if (this.selectedClientDetails.isCovid) {
                 this.state.reportType = "covid19";
             }
@@ -170,7 +171,7 @@ class ClientDetails extends Component {
     saveClientDetails() {
         console.log("clicked");
         console.log(this.state.xdrRecipientAddress);
-        console.log(this.state.clientSecret);
+        console.log(this.state.rrDocRefMimeType);
         var requestMethod = '';
         var clientDetails = {
             isProvider: this.state.launchType === "providerLaunch" ? true : false,
@@ -203,6 +204,7 @@ class ClientDetails extends Component {
             isInvokeRestAPI : this.state.rrProcessingType === 'invokeRestAPI' ? true: false,
             isBoth: this.state.rrProcessingType === 'both' ? true : false,
             rrRestAPIUrl : this.state.rrRestAPIUrl,
+            rrDocRefMimeType: this.state.rrDocRefMimeType,
             debugFhirQueryAndEicr: this.state.isLoggingEnabled ? this.state.isLoggingEnabled : false,
             lastUpdated:new Date()
             // tokenIntrospectionURL: this.state.tokenIntrospectionURL ? this.state.tokenIntrospectionURL : null,
@@ -753,6 +755,18 @@ class ClientDetails extends Component {
                                                     </Form.Group>
                                                 </div>
                                             ) : ''}
+
+                                            <Form.Group as={Row} controlId="rrDocRefMimeType">
+                                                        <Form.Label column sm={2}>
+                                                            RR Doc Ref Mime Type:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="RR DocumentReference Mime Type" name="rrDocRefMimeType" onChange={e => this.handleChange(e)} value={this.state.rrDocRefMimeType} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide DocumentReference Mime Type.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
 
                                             <Form.Group as={Row} controlId="reportType">
                                                 <Form.Label column sm={2}>

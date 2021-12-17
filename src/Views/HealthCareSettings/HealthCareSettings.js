@@ -3,96 +3,178 @@ import {
     Alert,
     Row,
     Col,
-    Form, Card, Accordion, Button
+    Form, Card, Accordion, Button,Table
 } from 'react-bootstrap';
-import './ClientDetails.css';
+import './HealthCareSettings.css';
 import { store } from 'react-notifications-component';
+import TextField from '@material-ui/core/TextField/TextField';
+import MenuItem from '@material-ui/core/MenuItem';
 
-class ClientDetails extends Component {
+class HealthCareSettings extends Component {
     constructor(props) {
         super(props);
         this.state = {
             validated: false,
             isValidated:false,
-            isChecked: false
+            isChecked: false,
+            karFhirServerURLList:[],
+            karsByHsIdList:[],
+            isKarFhirServerURLSelected:false,
+            selectedKARDetails:[],
+            outputFormats:["FHIR","CDA_R11","CDA_R30","Both"],
+            hsKARStatus:[]
         };
-        this.selectedClientDetails = this.props.selectedClientDetails;
-        this.addNew = this.props.addNew ? this.props.addNew.addNew : false;
-        if (!this.addNew && !this.isEmpty(this.selectedClientDetails)) {
-            if (this.selectedClientDetails.isProvider) {
-                this.state.launchType = 'providerLaunch';
-                this.state.clientId = this.selectedClientDetails.clientId;
+        this.selectedHealthCareSettings = this.props.selectedHealthCareSettings;
+        console.log(this.props.addNewHealthCare);
+        const propType = typeof this.props.addNewHealthCare;
+        if(propType === "boolean"){
+            this.addNewHealthCare = this.props.addNewHealthCare ? this.props.addNewHealthCare : false;
+        } else {
+            this.addNewHealthCare = this.props.addNewHealthCare ? this.props.addNewHealthCare.addNewHealthCare : false;
+        }
+        
+        console.log(this.addNewHealthCare);
+        console.log(this.selectedHealthCareSettings);
+        if (!this.addNewHealthCare && !this.isEmpty(this.selectedHealthCareSettings)) {
+          console.log("Inside If");
+            if (this.selectedHealthCareSettings.authType === 'SofProvider') {
+                this.state.authType = this.selectedHealthCareSettings.authType;
+                this.state.clientId = this.selectedHealthCareSettings.clientId;
             }
-            if (this.selectedClientDetails.isSystem) {
-                this.state.launchType = 'systemLaunch';
-                this.state.clientId = this.selectedClientDetails.clientId;
-                this.state.clientSecret = this.selectedClientDetails.clientSecret;
+            if (this.selectedHealthCareSettings.authType === 'SofSystem') {
+                this.state.authType = this.selectedHealthCareSettings.authType;
+                this.state.clientId = this.selectedHealthCareSettings.clientId;
+                this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
             }
-            if (this.selectedClientDetails.isUserAccountLaunch) {
-                this.state.launchType = 'userAccountLaunch';
-                this.state.username = this.selectedClientDetails.clientId;
-                this.state.password = this.selectedClientDetails.clientSecret;
+            if (this.selectedHealthCareSettings.authType === 'userAccountLaunch') {
+                this.state.authType = this.selectedHealthCareSettings.authType;
+                this.state.username = this.selectedHealthCareSettings.clientId;
+                this.state.password = this.selectedHealthCareSettings.clientSecret;
             }
-            
-            
-            this.state.fhirServerBaseURL = this.selectedClientDetails.fhirServerBaseURL;
-            this.state.tokenEndpoint = this.selectedClientDetails.tokenURL;
-            this.state.scopes = this.selectedClientDetails.scopes;
-            if (this.selectedClientDetails.isDirect) {
+            if (this.selectedHealthCareSettings.isDirect) {
                 this.state.directType = 'direct';
             }
-            if (this.selectedClientDetails.isXdr) {
+            if (this.selectedHealthCareSettings.isXdr) {
                 this.state.directType = 'xdr';
             }
-            if (this.selectedClientDetails.isRestAPI) {
+            if (this.selectedHealthCareSettings.isRestAPI) {
                 this.state.directType = 'restApi';
             }
-            this.state.directHost = this.selectedClientDetails.directHost;
-            this.state.directUserName = this.selectedClientDetails.directUser;
-            this.state.directPwd = this.selectedClientDetails.directPwd;
-            this.state.directRecipientAddress = this.selectedClientDetails.directRecipientAddress;
-            this.state.smtpUrl = this.selectedClientDetails.smtpUrl;
-            this.state.smtpPort = this.selectedClientDetails.smtpPort;
-            this.state.imapUrl = this.selectedClientDetails.imapUrl;
-            this.state.imapPort = this.selectedClientDetails.imapPort;
-            this.state.restAPIURL= this.selectedClientDetails.restAPIURL;
-            this.state.rrRestAPIUrl = this.selectedClientDetails.rrRestAPIUrl;
-            this.state.xdrRecipientAddress = this.selectedClientDetails.xdrRecipientAddress;
-            this.state.assigningAuthorityId = this.selectedClientDetails.assigningAuthorityId;
-            this.state.startThreshold = this.selectedClientDetails.encounterStartThreshold;
-            this.state.endThreshold = this.selectedClientDetails.encounterEndThreshold;
-            this.state.rrDocRefMimeType = this.selectedClientDetails.rrDocRefMimeType;
-            if (this.selectedClientDetails.isCovid) {
-                this.state.reportType = "covid19";
-            }
-            if (this.selectedClientDetails.isFullEcr) {
-                this.state.reportType = "fullecr";
-            }
-            if (this.selectedClientDetails.isCreateDocRef) {
-                this.state.rrProcessingType = "createDocRef";
-            }
-            if (this.selectedClientDetails.isInvokeRestAPI) {
-                this.state.rrProcessingType = "invokeRestAPI";
-            }
-            if (this.selectedClientDetails.isBoth) {
-                this.state.rrProcessingType = "both";
-            }
-            if(this.selectedClientDetails.debugFhirQueryAndEicr){
-                this.state.isChecked =true;
-            }
+            
+            this.state.clientId = this.selectedHealthCareSettings.clientId;
+            this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
+            this.state.fhirServerBaseURL = this.selectedHealthCareSettings.fhirServerBaseURL;
+            this.state.tokenEndpoint = this.selectedHealthCareSettings.tokenUrl;
+            this.state.scopes = this.selectedHealthCareSettings.scopes;
+            this.state.directHost = this.selectedHealthCareSettings.directHost;
+            this.state.directUserName = this.selectedHealthCareSettings.directUser;
+            this.state.directPwd = this.selectedHealthCareSettings.directPwd;
+            this.state.directRecipientAddress = this.selectedHealthCareSettings.directRecipientAddress;
+            this.state.smtpPort = this.selectedHealthCareSettings.smtpPort;
+            this.state.imapPort = this.selectedHealthCareSettings.imapPort;
+            this.state.restApiUrl= this.selectedHealthCareSettings.restApiUrl;
+            this.state.assigningAuthorityId = this.selectedHealthCareSettings.assigningAuthorityId;
+            this.state.startThreshold = this.selectedHealthCareSettings.encounterStartThreshold;
+            this.state.endThreshold = this.selectedHealthCareSettings.encounterEndThreshold;
+            this.getKARs();
+            this.getKARSByHsId(this.selectedHealthCareSettings.id);
         } else {
-            this.state.launchType = 'providerLaunch';
+            this.state.authType = 'SofProvider';
             this.state.directType = 'direct';
-            this.state.reportType = 'covid19';
-            this.state.rrProcessingType = 'createDocRef';
         }
         this.state.isSaved = false;
-        this.saveClientDetails = this.saveClientDetails.bind(this);
+        this.saveHealthCareSettings = this.saveHealthCareSettings.bind(this);
+        // this.saveKARSWithHealthCareSettings = this.saveKARSWithHealthCareSettings(this);
         this.handleRadioChange = this.handleRadioChange.bind(this);
         this.handleDirectChange = this.handleDirectChange.bind(this);
         this.handleReportChange = this.handleReportChange.bind(this);
-        this.handleRRProcessingChange = this.handleRRProcessingChange.bind(this);
-        this.openClientDetailsList = this.openClientDetailsList.bind(this);
+        this.openHealthCareSettingsList = this.openHealthCareSettingsList.bind(this);
+        this.openKAR = this.openKAR.bind(this);
+    }
+
+    getKARs(){
+        console.log("clicked");
+        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/kars/", {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    const errorMessage = response.json();
+                    console.log(errorMessage);
+                    store.addNotification({
+                        title: '' + response.status + '',
+                        message: 'Error in fetching the KARs',
+                        type: 'danger',
+                        insert: 'bottom',
+                        container: 'bottom-right',
+                        animationIn: ['animated', 'fadeIn'],
+                        animationOut: ['animated', 'fadeOut'],
+                        dismiss: {
+                            duration: 5000,
+                            click: true,
+                            onScreen: true
+                        }
+                    });
+                    return;
+                }
+            })
+            .then(result => {
+                console.log(result);
+                if (result) {
+                    console.log(result);
+                    this.setState({
+                        karFhirServerURLList:result
+                    })
+                }
+
+            });
+    }
+
+    getKARSByHsId(hsId){
+        console.log("clicked");
+        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/karStatusByHsId?hsId="+hsId, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    const errorMessage = response.json();
+                    console.log(errorMessage);
+                    store.addNotification({
+                        title: '' + response.status + '',
+                        message: 'Error in fetching the KARs By HsId',
+                        type: 'danger',
+                        insert: 'bottom',
+                        container: 'bottom-right',
+                        animationIn: ['animated', 'fadeIn'],
+                        animationOut: ['animated', 'fadeOut'],
+                        dismiss: {
+                            duration: 5000,
+                            click: true,
+                            onScreen: true
+                        }
+                    });
+                    return;
+                }
+            })
+            .then(result => {
+                if (result) {
+                    console.log(result);
+                    this.setState({
+                        karsByHsIdList:result
+                    })
+                }
+
+            });
     }
 
     isEmpty(obj) {
@@ -115,14 +197,14 @@ class ClientDetails extends Component {
                 clientId:''
             })
         }
-        if(e.target.value === "systemLaunch" || e.target.value === "providerLaunch"){
+        if(e.target.value === "SofProvider" || e.target.value === "SofSystem"){
             this.setState({
                 username:'',
                 password:''
             })
         }
         this.setState({
-            launchType: e.target.value
+            authType: e.target.value
         });
     }
 
@@ -138,10 +220,46 @@ class ClientDetails extends Component {
         });
     }
 
-    handleRRProcessingChange(e) {
-        this.setState({
-            rrProcessingType: e.target.value
+    async handleKARChange(e){
+        console.log(this.state.karsByHsIdList);
+        const karsByHsIdList = this.state.karsByHsIdList;
+        console.log(this.state.karFhirServerURLList)
+        console.log(e.target.value);
+        let kARDetails = this.state.karFhirServerURLList.filter(x=> {
+            return x.id== e.target.value;
         });
+        const karInfoList = kARDetails[0].karsInfo;
+        karInfoList.sort(function(a, b) { 
+            return b.id - a.id;
+          });
+        for(var i=0; i<karsByHsIdList.length; i++){
+            const versionAndKarIdArr = karsByHsIdList[i].versionUniqueKarId.split("|");
+            console.log(versionAndKarIdArr[0]);
+            console.log(versionAndKarIdArr[1]);
+            karInfoList.filter(x=>{
+                if(x.karId === versionAndKarIdArr[0] && x.karVersion === versionAndKarIdArr[1]){
+                    x['isActive'] = karsByHsIdList[i].isActive;
+                    x['subscriptionsEnabled'] = karsByHsIdList[i].subscriptionsEnabled;
+                    x['covidOnly'] = karsByHsIdList[i].covidOnly;
+                    x['outputFormat'] = karsByHsIdList[i].outputFormat;
+                }
+            })
+        }
+        console.log(karInfoList);
+        await this.setState({
+             karFhirServerURL: e.target.value,
+             isKarFhirServerURLSelected: true,
+             selectedKARDetails: karInfoList
+        })
+        
+        console.log(this.state.selectedKARDetails);
+    }
+
+    handleOutputFormatChange(e,rowData){
+        console.log(e.target.value);
+        console.log(rowData);
+        rowData['outputFormat'] = e.target.value;
+        rowData['isChanged'] = true;
     }
 
     handleToggleButton(e) {
@@ -155,8 +273,38 @@ class ClientDetails extends Component {
         console.log(this.state);
     }
 
-    openClientDetailsList() {
-        this.props.history.push('clientDetailsList');
+    handleCheckboxChange(e,rowData,columnType){
+        console.log(e.target.checked);
+        console.log(rowData);
+        console.log(columnType);
+        if(columnType === "Activation"){
+            rowData['isActive'] = e.target.checked;
+            rowData['isChanged'] = true;
+        } 
+        if(columnType === "EnableSubscriptions"){
+            rowData['subscriptionsEnabled'] = e.target.checked;
+            rowData['isChanged'] = true;
+        }
+        if(columnType === "EnableCovidReporting"){
+            rowData['covidOnly'] = e.target.checked;
+            rowData['isChanged'] = true;
+        }
+        console.log(rowData);
+        this.state.selectedKARDetails.filter(x=>{
+            if(x.id === rowData.id && rowData.isChanged){
+                x = rowData;
+            }
+        })
+        this.setState({
+            selectedKARDetails:[ ...this.state.selectedKARDetails ]
+        })
+    }
+
+    openHealthCareSettingsList() {
+        this.props.history.push('healthCareSettingsList');
+    }
+    openKAR(){
+        this.props.history.push('kar');
     }
 
     geturl() {
@@ -169,65 +317,50 @@ class ClientDetails extends Component {
         return strurl;
     };
 
-    saveClientDetails() {
+    saveHealthCareSettings() {
         console.log("clicked");
+        console.log(this.selectedHealthCareSettings);
         console.log(this.state.xdrRecipientAddress);
-        console.log(this.state.rrDocRefMimeType);
         var requestMethod = '';
-        var clientDetails = {
-            isProvider: this.state.launchType === "providerLaunch" ? true : false,
-            isSystem: this.state.launchType === 'systemLaunch' ? true : false,
-            isUserAccountLaunch: this.state.launchType === "userAccountLaunch"? true : false,
-            clientId: this.state.launchType === "userAccountLaunch"?this.state.username:this.state.clientId,
-            clientSecret: this.state.clientSecret && this.state.launchType === 'systemLaunch'  ? this.state.clientSecret : this.state.password,
-            fhirServerBaseURL: this.state.fhirServerBaseURL,
-            tokenURL: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
-            scopes: this.state.scopes,
+        var healthCareSettings = {
+            authType: this.state.authType,
+            clientId: this.state.authType === "userAccountLaunch"?this.state.username:this.state.clientId,
             isDirect: this.state.directType === "direct" ? true : false,
             isXdr: this.state.directType === "xdr" ? true : false,
             isRestAPI: this.state.directType === "restApi" ? true : false,
+            clientSecret: this.state.clientSecret && this.state.authType === 'SofSystem'  ? this.state.clientSecret : this.state.password,
+            fhirServerBaseURL: this.state.fhirServerBaseURL,
+            tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
+            scopes: this.state.scopes,
             directHost: this.state.directHost && this.state.directType === "direct" ? this.state.directHost : null,
             directUser: this.state.directUserName && this.state.directType === "direct" ? this.state.directUserName : null,
             directPwd: this.state.directPwd && this.state.directType === "direct" ? this.state.directPwd : null,
-            smtpUrl: this.state.smtpUrl && this.state.directType === "direct" ? this.state.smtpUrl : null,
             smtpPort: this.state.smtpPort && this.state.directType === "direct" ? this.state.smtpPort : null,
-            imapUrl: this.state.imapUrl && this.state.directType === "direct" ? this.state.imapUrl : null,
             imapPort: this.state.imapPort && this.state.directType === "direct" ? this.state.imapPort : null,
             directRecipientAddress: this.state.directRecipientAddress && this.state.directType === "direct" ? this.state.directRecipientAddress : null,
             xdrRecipientAddress: this.state.xdrRecipientAddress && this.state.directType === "xdr" ? this.state.xdrRecipientAddress : null,
-            restAPIURL: this.state.restAPIURL && this.state.directType === "restApi" ? this.state.restAPIURL : null,
-            assigningAuthorityId: this.state.assigningAuthorityId,
+            restApiUrl: this.state.restApiUrl && this.state.directType === "restApi" ? this.state.restApiUrl : null,
+            assigningAuthorityId : this.state.assigningAuthorityId?this.state.assigningAuthorityId:null,
             encounterStartThreshold: this.state.startThreshold,
             encounterEndThreshold: this.state.endThreshold,
-            isCovid: this.state.reportType === "covid19" ? true : false,
-            isFullEcr: this.state.reportType === "fullecr" ? true : false,
-            isCreateDocRef : this.state.rrProcessingType === 'createDocRef'?true:false,
-            isInvokeRestAPI : this.state.rrProcessingType === 'invokeRestAPI' ? true: false,
-            isBoth: this.state.rrProcessingType === 'both' ? true : false,
-            rrRestAPIUrl : this.state.rrRestAPIUrl,
-            rrDocRefMimeType: this.state.rrDocRefMimeType,
-            debugFhirQueryAndEicr: this.state.isLoggingEnabled ? this.state.isLoggingEnabled : false,
             lastUpdated:new Date()
-            // tokenIntrospectionURL: this.state.tokenIntrospectionURL ? this.state.tokenIntrospectionURL : null,
-            // ehrClientId: this.state.ehrClientId ? this.state.ehrClientId : null,
-            // ehrClientSecret: this.state.ehrClientSecret ? this.state.ehrClientSecret : null,
-            // ehrAuthorizationUrl: this.state.ehrAuthorizationUrl ? this.state.ehrAuthorizationUrl : null
         };
-        if (!this.addNew && this.selectedClientDetails) {
-            clientDetails['id'] = this.selectedClientDetails.id;
+        if (!this.addNewHealthCare && this.selectedHealthCareSettings) {
+          healthCareSettings['id'] = this.selectedHealthCareSettings.id;
             requestMethod = 'PUT';
         } else {
             requestMethod = 'POST';
         }
         console.log(this.geturl());
-        console.log(JSON.stringify(clientDetails));
+        console.log(JSON.stringify(healthCareSettings));
+        
         // var serviceURL = this.geturl();
-        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/clientDetails", {
+        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/healthcareSettings", {
             method: requestMethod,
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(clientDetails)
+            body: JSON.stringify(healthCareSettings)
         })
             .then(response => {
                 if (response.status === 200) {
@@ -240,7 +373,7 @@ class ClientDetails extends Component {
                     console.log(errorMessage);
                     store.addNotification({
                         title: '' + response.status + '',
-                        message: 'Error in Saving the Client Details',
+                        message: 'Error in Saving the HealthCare Settings',
                         type: 'danger',
                         insert: 'bottom',
                         container: 'bottom-right',
@@ -259,29 +392,19 @@ class ClientDetails extends Component {
                 console.log(result);
                 if (result) {
                     this.setState({
-                        launchType: "providerLaunch",
+                        authType: "SofProvider",
                         clientId: "",
                         clientSecret: "",
                         fhirServerBaseURL: "",
-                        // tokenEndpoint: "",
+                        tokenEndpoint: "",
                         scopes: "",
-                        directType: "direct",
-                        directHost: "",
-                        directUserName: "",
-                        directPwd: "",
-                        directRecipientAddress: "",
-                        xdrRecipientAddress: "",
-                        assigningAuthorityId: "",
                         startThreshold: "",
                         endThreshold: "",
-                        reportType: "covid19",
-                        rrProcessingType: "createDocRef",
-                        ersdFileLocation: "",
-                        schematronLocation: ""
+                        restApiUrl: ""
                     });
                     store.addNotification({
                         title: 'Success',
-                        message: 'Client Details are saved successfully.',
+                        message: 'HealthCare Settings are saved successfully.',
                         type: 'success',
                         insert: 'bottom',
                         container: 'bottom-right',
@@ -293,10 +416,80 @@ class ClientDetails extends Component {
                             onScreen: true
                         }
                     });
-
-                    this.openClientDetailsList();
+                    this.saveKARSWithHealthCareSettings(this.selectedHealthCareSettings);
+                    
                 }
 
+            });
+    }
+
+    saveKARSWithHealthCareSettings(hcs) {
+        console.log(this.state.selectedKARDetails);
+        const kars =  this.state.selectedKARDetails;
+        const updatedRows = kars.filter(x=>{
+            return x.isChanged === true;
+        });
+        const hsKARStatus = [];
+        for(var i=0; i<updatedRows.length; i++){
+            const karWithHsObj = {
+                hsId : this.selectedHealthCareSettings.id,
+                karId : updatedRows[i].karId,
+                karVersion : updatedRows[i].karVersion,
+                versionUniqueKarId : updatedRows[i].karId + "|" + updatedRows[i].karVersion,
+                isActive : updatedRows[i].isActive?updatedRows[i].isActive:false,
+                subscriptionsEnabled : updatedRows[i].subscriptionsEnabled?updatedRows[i].subscriptionsEnabled:false,
+                covidOnly: updatedRows[i].covidOnly?updatedRows[i].covidOnly:false,
+                // directHost: hcs.directHost,
+                // directUser: hcs.directUser,
+                // directPwd: hcs.directPwd,
+                // smtpPort: hcs.smtpPort,
+                // imapPort: hcs.imapPort,
+                // directRecipientAddress: hcs.directRecipientAddress,
+                // xdrRecipientAddress: hcs.xdrRecipientAddress,
+                // restApiUrl: hcs.restApiUrl,
+                // assigningAuthorityId:hcs.assigningAuthorityId,
+                // encounterStartThreshold:hcs.encounterStartThreshold,
+                // encounterEndThreshold:hcs.encounterEndThreshold,
+                outputFormat : updatedRows[i].outputFormat
+            }
+            hsKARStatus.push(karWithHsObj);
+        }
+        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/addKARStatus/", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(hsKARStatus)
+        })
+            .then(response => {
+                if (response.status === 200) {
+                    this.setState({
+                        isSaved: true
+                    });
+                    return response.json();
+                } else {
+                    const errorMessage = response.json();
+                    console.log(errorMessage);
+                    store.addNotification({
+                        title: '' + response.status + '',
+                        message: 'Error in Saving the Knowledge Artifacts Status',
+                        type: 'danger',
+                        insert: 'bottom',
+                        container: 'bottom-right',
+                        animationIn: ['animated', 'fadeIn'],
+                        animationOut: ['animated', 'fadeOut'],
+                        dismiss: {
+                            duration: 5000,
+                            click: true,
+                            onScreen: true
+                        }
+                    });
+                    return;
+                }
+            })
+            .then(result => {
+                console.log(result);
+                this.openHealthCareSettingsList();
             });
     }
 
@@ -328,7 +521,7 @@ class ClientDetails extends Component {
                 return;
             }
             if (form.checkValidity() === true) {
-                this.saveClientDetails();
+                this.saveHealthCareSettings();
                 this.setState({
                     validated: true
                 });
@@ -338,14 +531,17 @@ class ClientDetails extends Component {
 
         };
         return (
-            <div className="clientDetails">
+            <div className="healthCareSettings">
                 <br />
                 <Row>
                     <Col md="6">
-                        <h2>Client Details Configuration</h2>
+                        <h2>HealthCare Settings</h2>
                     </Col>
-                    <Col md="6" className="clientCol">
-                        <Button onClick={this.openClientDetailsList}>Existing Client Details</Button>
+                    <Col md="3" className="clientCol">
+                        <Button onClick={this.openHealthCareSettingsList}>Existing HealthCareSettings</Button>
+                    </Col>
+                    <Col md="3" className="clientCol">
+                        <Button onClick={this.openKAR}>eCR Specifications/KAR</Button>
                     </Col>
                 </Row>
                 <hr />
@@ -357,7 +553,7 @@ class ClientDetails extends Component {
                             onClose={() => setShow()}
                             dismissible
                         >
-                            Client Details are saved successfully.
+                            HealthCare Settings are saved successfully.
         </Alert>
                         <Form noValidate validated={this.state.validated} onSubmit={handleSubmit} >
                             <Accordion defaultActiveKey="0">
@@ -375,27 +571,26 @@ class ClientDetails extends Component {
                                                     <Row>
                                                         <Col sm={4}>
                                                             <Form.Check type="radio" id="providerLaunch">
-                                                                <Form.Check.Input type="radio" checked={this.state.launchType === 'providerLaunch'} value="providerLaunch" name="launchType" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'SofProvider'} value="SofProvider" name="authType" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>Provider Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
                                                         <Col sm={4}>
                                                             <Form.Check type="radio" id="systemLaunch">
-                                                                <Form.Check.Input type="radio" checked={this.state.launchType === 'systemLaunch'} value="systemLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'SofSystem'} value="SofSystem" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>System Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
                                                         <Col sm={4}>
                                                             <Form.Check type="radio" id="userAccountLaunch">
-                                                                <Form.Check.Input type="radio" checked={this.state.launchType === 'userAccountLaunch'} value="userAccountLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'userAccountLaunch'} value="userAccountLaunch" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>Username & Password</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
-                                            {this.state.launchType === 'systemLaunch' || this.state.launchType === 'providerLaunch' ? (
-                                            
+                                            {this.state.authType === 'SofSystem' || this.state.authType === 'SofProvider' ? (
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     Client Id:
@@ -419,9 +614,8 @@ class ClientDetails extends Component {
                                                 </Col>
                                             </Form.Group>
                                             )}
-                                            
 
-                                            {this.state.launchType === 'systemLaunch' ? (
+                                            {this.state.authType === 'SofSystem' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
                                                     <Form.Label column sm={2}>
                                                         Client Secret:
@@ -435,7 +629,7 @@ class ClientDetails extends Component {
                                                 </Form.Group>
                                             ) : ''}
 
-                                            {this.state.launchType === 'userAccountLaunch' ? (
+                                            {this.state.authType === 'userAccountLaunch' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
                                                     <Form.Label column sm={2}>
                                                         Password:
@@ -473,32 +667,20 @@ class ClientDetails extends Component {
                                                 </Col>
                                             </Form.Group>
 
-                                            {/*this.state.launchType === 'userAccountLaunch' ? (
+                                            
                                                 <Form.Group as={Row} controlId="formHorizontalTokenURL">
                                                     <Form.Label column sm={2}>
                                                         Token Endpoint:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
+                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint"  onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} isInvalid={this.state.isValidated && (this.state.tokenEndpoint === '' || this.state.tokenEndpoint === undefined)}/>
 
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a FHIR Server Token URL.
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
-                                            ) : ''} */}
-                                            <Form.Group as={Row} controlId="formHorizontalTokenURL">
-                                                    <Form.Label column sm={2}>
-                                                        Token Endpoint:
-                                                    </Form.Label>
-                                                    <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
-
-                                                        <Form.Control.Feedback type="invalid">
-                                                            Please provide a FHIR Server Token URL.
-                                                        </Form.Control.Feedback>
-                                                    </Col>
-                                                </Form.Group>
+                                            
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>
@@ -509,7 +691,7 @@ class ClientDetails extends Component {
                                     </Accordion.Toggle>
                                     <Accordion.Collapse eventKey="1">
                                         <Card.Body className="transportConfiguration">
-                                            <Form.Group as={Row} controlId="formHorizontalClientId">
+                                        <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     Direct Type:
                                                 </Form.Label>
@@ -586,17 +768,6 @@ class ClientDetails extends Component {
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
-                                                    <Form.Group as={Row} controlId="smtpUrl">
-                                                        <Form.Label column sm={2}>
-                                                            SMTP URL:
-                                                        </Form.Label>
-                                                        <Col sm={10}>
-                                                            <Form.Control type="text" name="smtpUrl" placeholder="SMTP URL" onChange={e => this.handleChange(e)} value={this.state.smtpUrl} />
-                                                            <Form.Control.Feedback type="invalid">
-                                                                Please provide a SMTP URL.
-                                                            </Form.Control.Feedback>
-                                                        </Col>
-                                                    </Form.Group>
                                                     <Form.Group as={Row} controlId="smtpPort">
                                                         <Form.Label column sm={2}>
                                                             SMTP Port:
@@ -605,17 +776,6 @@ class ClientDetails extends Component {
                                                             <Form.Control type="text" name="smtpPort" required={this.state.directType === 'direct' ? true : false} placeholder="SMTP Port" onChange={e => this.handleChange(e)} value={this.state.smtpPort} isInvalid={this.state.isValidated && (this.state.smtpPort === '' || this.state.smtpPort === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a SMTP Port.
-                                                            </Form.Control.Feedback>
-                                                        </Col>
-                                                    </Form.Group>
-                                                    <Form.Group as={Row} controlId="imapUrl">
-                                                        <Form.Label column sm={2}>
-                                                            IMAP Port:
-                                                        </Form.Label>
-                                                        <Col sm={10}>
-                                                            <Form.Control type="text" name="imapUrl" placeholder="IMAP URL" onChange={e => this.handleChange(e)} value={this.state.imapUrl} />
-                                                            <Form.Control.Feedback type="invalid">
-                                                                Please provide a IMAP URL.
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
@@ -651,50 +811,17 @@ class ClientDetails extends Component {
 
                                             {this.state.directType === 'restApi' ? (
                                                 <div>
-                                                    <Form.Group as={Row} controlId="restAPIURL">
+                                                    <Form.Group as={Row} controlId="restApiUrl">
                                                         <Form.Label column sm={2}>
                                                             Rest API URL:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.directType === 'restApi' ? true : false} name="restAPIURL" onChange={e => this.handleChange(e)} value={this.state.restAPIURL} isInvalid={this.state.isValidated && (this.state.restAPIURL === '' || this.state.restAPIURL === undefined)}/>
+                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.directType === 'restApi' ? true : false} name="restApiUrl" onChange={e => this.handleChange(e)} value={this.state.restApiUrl} isInvalid={this.state.isValidated && (this.state.restApiUrl === '' || this.state.restApiUrl === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide Rest API URL.
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
-                                                    {/* <Form.Group as={Row} controlId="ehrClientId">
-                                                        <Form.Label column sm={2}>
-                                                            Client Id:
-                                                        </Form.Label>
-                                                        <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Client Id" required={this.state.directType === 'restApi' ? true : false} name="ehrClientId" onChange={e => this.handleChange(e)} value={this.state.ehrClientId} />
-                                                            <Form.Control.Feedback type="invalid">
-                                                                Please provide ClientId.
-                                                            </Form.Control.Feedback>
-                                                        </Col>
-                                                    </Form.Group>
-                                                    <Form.Group as={Row} controlId="ehrClientSecret">
-                                                        <Form.Label column sm={2}>
-                                                            Client Secret:
-                                                        </Form.Label>
-                                                        <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Client Secret" required={this.state.directType === 'restApi' ? true : false} name="ehrClientSecret" onChange={e => this.handleChange(e)} value={this.state.ehrClientSecret} />
-                                                            <Form.Control.Feedback type="invalid">
-                                                                Please provide Client Secret.
-                                                            </Form.Control.Feedback>
-                                                        </Col>
-                                                    </Form.Group>
-                                                    <Form.Group as={Row} controlId="ehrAuthorizationUrl">
-                                                        <Form.Label column sm={2}>
-                                                            Authorization URL:
-                                                        </Form.Label>
-                                                        <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="Authorization URL" required={this.state.directType === 'restApi' ? true : false} name="ehrAuthorizationUrl" onChange={e => this.handleChange(e)} value={this.state.ehrAuthorizationUrl} />
-                                                            <Form.Control.Feedback type="invalid">
-                                                                Please provide Authorization URL.
-                                                            </Form.Control.Feedback>
-                                                        </Col>
-                                                    </Form.Group> */}
                                                 </div>
                                             ) : ''}
                                         </Card.Body>
@@ -707,6 +834,7 @@ class ClientDetails extends Component {
                                     </Accordion.Toggle>
                                     <Accordion.Collapse eventKey="2">
                                         <Card.Body className="appConfiguration">
+
                                             <Form.Group as={Row} controlId="assigningAuthorityId">
                                                 <Form.Label column sm={2}>
                                                     Assigning Authority Id:
@@ -743,113 +871,84 @@ class ClientDetails extends Component {
                                                 </Col>
                                             </Form.Group>
 
-                                            <Form.Group as={Row} controlId="rrProcessing">
-                                                <Form.Label column sm={2}>
-                                                    RR Processing:
-                                                </Form.Label>
-                                                <Col sm={10}>
-                                                    <Row>
-                                                        <Col sm={4}>
-                                                            <Form.Check type="radio" id="createDocRef">
-                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'createDocRef'} value="createDocRef" onChange={e => this.handleRRProcessingChange(e)} />
-                                                                <Form.Check.Label>Create Document Reference</Form.Check.Label>
-                                                            </Form.Check>
-                                                        </Col>
-                                                        <Col sm={4}>
-                                                            <Form.Check type="radio" id="invokeRestAPI">
-                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'invokeRestAPI'} value="invokeRestAPI" onChange={e => this.handleRRProcessingChange(e)} />
-                                                                <Form.Check.Label>Invoke Rest API</Form.Check.Label>
-                                                            </Form.Check>
-                                                        </Col>
-                                                        <Col sm={4}>
-                                                            <Form.Check type="radio" id="both">
-                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'both'} value="both" onChange={e => this.handleRRProcessingChange(e)} />
-                                                                <Form.Check.Label>Both</Form.Check.Label>
-                                                            </Form.Check>
-                                                        </Col>
-                                                    </Row>
-                                                </Col>
-                                            </Form.Group>
-                                            
-                                            {this.state.rrProcessingType === 'invokeRestAPI' || this.state.rrProcessingType === 'both' ? (
-                                                <div>
-                                                    <Form.Group as={Row} controlId="rrRestAPIUrl">
-                                                        <Form.Label column sm={2}>
-                                                            RR Rest API URL:
-                                                        </Form.Label>
-                                                        <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="RR Rest API URL" required={this.state.rrProcessingType === 'invokeRestAPI' || this.state.rrProcessingType === 'both' ? true : false} name="rrRestAPIUrl" onChange={e => this.handleChange(e)} value={this.state.rrRestAPIUrl} />
-                                                            <Form.Control.Feedback type="invalid">
-                                                                Please provide a RR Rest API URL.
-                                                            </Form.Control.Feedback>
-                                                        </Col>
-                                                    </Form.Group>
-                                                </div>
-                                            ) : ''}
-
-                                            <Form.Group as={Row} controlId="rrDocRefMimeType">
-                                                        <Form.Label column sm={2}>
-                                                            RR Doc Ref Mime Type:
-                                                        </Form.Label>
-                                                        <Col sm={10}>
-                                                            <Form.Control type="text" placeholder="RR DocumentReference Mime Type" name="rrDocRefMimeType" onChange={e => this.handleChange(e)} value={this.state.rrDocRefMimeType} />
-                                                            <Form.Control.Feedback type="invalid">
-                                                                Please provide DocumentReference Mime Type.
-                                                            </Form.Control.Feedback>
-                                                        </Col>
-                                                    </Form.Group>
-
-                                            <Form.Group as={Row} controlId="reportType">
-                                                <Form.Label column sm={2}>
-                                                    Report Type:
-                                                </Form.Label>
-                                                <Col sm={10}>
-                                                    <Row>
-                                                        <Col sm={4}>
-                                                            <Form.Check type="radio" id="covid19">
-                                                                <Form.Check.Input type="radio" checked={this.state.reportType === 'covid19'} value="covid19" onChange={e => this.handleReportChange(e)} />
-                                                                <Form.Check.Label>Covid-19</Form.Check.Label>
-                                                            </Form.Check>
-                                                        </Col>
-                                                        <Col sm={4}>
-                                                            <Form.Check type="radio" id="fullecr">
-                                                                <Form.Check.Input type="radio" checked={this.state.reportType === 'fullecr'} value="fullecr" onChange={e => this.handleReportChange(e)} />
-                                                                <Form.Check.Label>Full ECR Report</Form.Check.Label>
-                                                            </Form.Check>
-                                                        </Col>
-                                                    </Row>
-                                                </Col>
-                                            </Form.Group>
-                                            <Form.Group as={Row} controlId="debugFhirQueryAndEicr">
-                                                <Form.Label column sm={2}>
-                                                Debug Fhir Query And Eicr
-                                                </Form.Label>
-                                                <Col sm={9}>
-                                                    <Form.Check
-                                                        type="switch"
-                                                        id="enableLogging-switch"
-                                                        onChange={e => this.handleToggleButton(e)}
-                                                        label=""
-                                                        className="switchBtn"
-                                                        name="debugFhirQueryAndEicr"
-                                                        checked={this.state.isChecked}
-                                                    />
-                                                </Col>
-                                            </Form.Group>
-                                            {/* <Form.Group as={Row} controlId="tokenIntrospectionURL">
-                                                <Form.Label column sm={2}>
-                                                    Token Introspection URL:
-                                                </Form.Label>
-                                                <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="Token Introspection URL" required name="tokenIntrospectionURL" onChange={e => this.handleChange(e)} value={this.state.tokenIntrospectionURL} />
-                                                    <Form.Control.Feedback type="invalid">
-                                                        Please provide a Token Introspection URL.
-                                                    </Form.Control.Feedback>
-                                                </Col>
-                                            </Form.Group> */}
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>
+                            
+                                {!this.addNewHealthCare?(
+                                <Card className="accordionCards">
+                                    <Accordion.Toggle as={Card.Header} eventKey="3">
+                                        eCR Specifications/KAR Configuration
+                                    </Accordion.Toggle>
+                                    <Accordion.Collapse eventKey="3">
+                                        <Card.Body className="appConfiguration">
+
+                                        <Form.Group as={Row} controlId="fhirServerURLPickList">
+                                            <Form.Label column lg="3">
+                                                Select FHIR Server URL:
+                                            </Form.Label>
+                                            <Col lg="9">
+                                            <Form.Control as="select" defaultValue="Select FHIR Server URL" onChange={e=>this.handleKARChange(e)}>
+                                                <option>Select FHIR Server URL</option>
+                                                {this.state.karFhirServerURLList.map(option => (
+                                                    <option key={option.id} value={option.id}>
+                                                    {option.repoName +" - "+option.fhirServerURL}
+                                                    </option>
+                                                ))}
+                                            </Form.Control>
+                                            <Form.Control.Feedback type="invalid">
+                                                        Please provide a Encounter End Time Threshold.
+                                                    </Form.Control.Feedback>
+                                            </Col>
+                                            </Form.Group>
+
+                                            {this.state.isKarFhirServerURLSelected  ? (
+                                                <Row>
+                                                <Col>
+                                                    <Table responsive="lg" striped bordered hover size="sm" className="karsTable">
+                                                        <tbody>
+                                                            <tr>
+                                                                {/* <th>PlanDefinitionId</th> */}
+                                                                <th>Name</th>
+                                                                <th>Publisher</th>
+                                                                <th>Version</th>
+                                                                <th>Activate</th>
+                                                                <th>Enable Subscriptions</th>
+                                                                <th>Only Covid?</th>
+                                                                <th className="outputFormat">Output Format</th>
+                                                            </tr>
+                                                            {
+                                                                this.state.selectedKARDetails.map(get =>
+                                                                    <tr key={get.karId}>
+                                                                        {/* <td>{get.karId}</td> */}
+                                                                        <td className="karTableName">{get.karName}</td>
+                                                                        <td className="karTablePublisher">{get.karPublisher}</td>
+                                                                        <td>{get.karVersion}</td>
+                                                                        <td className="karCheckBoxes"><Form.Check type="checkbox" name="karActive" onChange={(e) => this.handleCheckboxChange(e, get,"Activation")} className="tableCheckboxes" checked={get.isActive}/></td>
+                                                                        <td className="karCheckBoxes"><Form.Check type="checkbox" name="karSubscribed" onChange={(e) => this.handleCheckboxChange(e, get,"EnableSubscriptions")} className="tableCheckboxes" checked={get.subscriptionsEnabled}/></td>
+                                                                        <td className="karCheckBoxes"><Form.Check type="checkbox" name="covidEnabled" onChange={(e) => this.handleCheckboxChange(e, get,"EnableCovidReporting")} className="tableCheckboxes" checked={get.covidOnly}/></td>
+                                                                        <td>
+                                                                        <Form.Control as="select" size="sm" defaultValue={get.outputFormat} onChange={e=>this.handleOutputFormatChange(e,get)}>
+                                                                            <option>Select Output Format</option>
+                                                                            {this.state.outputFormats.map(option => (
+                                                                                <option key={option} value={option}>
+                                                                                {option}
+                                                                                </option>
+                                                                            ))}
+                                                                        </Form.Control>
+                                                                        </td>
+                                                                    </tr>
+                                                                )
+                                                            }
+                                                        </tbody>
+                                                    </Table> 
+                                                </Col>
+                                            </Row>
+                                                ):''}
+                                        </Card.Body>
+                                    </Accordion.Collapse>
+                                </Card>):''}
+                                
                             </Accordion>
                             <Row>
                                 <Col className="text-center">
@@ -875,4 +974,4 @@ class ClientDetails extends Component {
     }
 }
 
-export default ClientDetails;
+export default HealthCareSettings;

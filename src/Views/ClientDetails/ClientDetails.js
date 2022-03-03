@@ -40,7 +40,7 @@ class ClientDetails extends Component {
             
             
             this.state.fhirServerBaseURL = this.selectedClientDetails.fhirServerBaseURL;
-            // this.state.tokenEndpoint = this.selectedClientDetails.tokenURL;
+            this.state.tokenEndpoint = this.selectedClientDetails.tokenURL;
             this.state.scopes = this.selectedClientDetails.scopes;
             if (this.selectedClientDetails.isDirect) {
                 this.state.directType = 'direct';

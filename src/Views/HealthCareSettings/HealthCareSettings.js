@@ -76,6 +76,11 @@ class HealthCareSettings extends Component {
             this.state.assigningAuthorityId = this.selectedHealthCareSettings.assigningAuthorityId;
             this.state.startThreshold = this.selectedHealthCareSettings.encounterStartThreshold;
             this.state.endThreshold = this.selectedHealthCareSettings.encounterEndThreshold;
+            this.state.subscriptionsEnabled = this.selectedHealthCareSettings.subscriptionsEnabled;
+            this.state.trustedThirdParty = this.selectedHealthCareSettings.trustedThirdParty;
+            this.state.orgName = this.selectedHealthCareSettings.orgName;
+            this.state.orgIdSystem = this.selectedHealthCareSettings.orgIdSystem;
+            this.state.orgId = this.selectedHealthCareSettings.orgId;
             this.getKARs();
             this.getKARSByHsId(this.selectedHealthCareSettings.id);
         } else {
@@ -343,6 +348,11 @@ class HealthCareSettings extends Component {
             assigningAuthorityId : this.state.assigningAuthorityId?this.state.assigningAuthorityId:null,
             encounterStartThreshold: this.state.startThreshold,
             encounterEndThreshold: this.state.endThreshold,
+            subscriptionsEnabled: this.state.SubscriptionsEnabled,
+            trustedThirdParty: this.state.trustedThirdParty,
+            orgName: this.state.orgName ? this.state.orgName : null,
+            orgIdSystem: this.state.orgIdSystem,
+            orgId: this.state.orgId,
             lastUpdated:new Date()
         };
         if (!this.addNewHealthCare && this.selectedHealthCareSettings) {
@@ -666,7 +676,45 @@ class HealthCareSettings extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
+                                            <Form.Group as={Row} controlId="formHorizaontalSubscriptionsEnabled">
+                                                <Form.Label column sm={2}>
+                                                    Subscriptions Enabled:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Row>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="checkbox" id="subscriptionsEnabled">
+                                                                <Form.Check.Input type="checkbox" value={this.state.subscriptionsEnabled} onChange={e => this.setState( (prevState) => {return {subscriptionsEnabled: !prevState.subscriptionsEnabled}})} />
+                                                            </Form.Check>
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                            </Form.Group>
 
+                                            <Form.Group as={Row} controlId="formHorizontalOrgName">
+                                                        <Form.Label column sm={2}>
+                                                            Org Name:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="Organization Name" name="orgName" onChange={e => this.handleChange(e)} value={this.state.orgName || ''}/>
+                                                        </Col>
+                                            </Form.Group>
+                                            <Form.Group as={Row} controlId="formHorizontalOrgIdSystem">
+                                                        <Form.Label column sm={2}>
+                                                            Org ID System:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="Organization ID System" name="orgIdSystem" onChange={e => this.handleChange(e)} value={this.state.orgIdSystem || ''}/>
+                                                        </Col>
+                                            </Form.Group>
+                                            <Form.Group as={Row} controlId="formHorizontalOrgId">
+                                                        <Form.Label column sm={2}>
+                                                            Org ID:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="Organization ID" name="orgId" onChange={e => this.handleChange(e)} value={this.state.orgId || ''}/>
+                                                        </Col>
+                                            </Form.Group>
                                             
                                                 <Form.Group as={Row} controlId="formHorizontalTokenURL">
                                                     <Form.Label column sm={2}>

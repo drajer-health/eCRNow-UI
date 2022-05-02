@@ -348,7 +348,7 @@ class HealthCareSettings extends Component {
             assigningAuthorityId : this.state.assigningAuthorityId?this.state.assigningAuthorityId:null,
             encounterStartThreshold: this.state.startThreshold,
             encounterEndThreshold: this.state.endThreshold,
-            subscriptionsEnabled: this.state.SubscriptionsEnabled,
+            subscriptionsEnabled: this.state.subscriptionsEnabled,
             trustedThirdParty: this.state.trustedThirdParty,
             orgName: this.state.orgName ? this.state.orgName : null,
             orgIdSystem: this.state.orgIdSystem,

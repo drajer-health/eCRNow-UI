@@ -294,6 +294,12 @@ class PublicHealthAuthority extends Component {
                                                                 <Form.Check.Label>System Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="systemLaunch">
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'UserNamePwd'} value="UserNamePwd" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Label>Username and Password</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
@@ -302,20 +308,20 @@ class PublicHealthAuthority extends Component {
                                                     Client Id:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required onChange={e => this.handleChange(e)} value={this.state.clientId} isInvalid={this.state.isValidated && (this.state.clientId === '' || this.state.clientId === undefined)}/>
+                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientId} isInvalid={this.state.isValidated && (this.state.clientId === '' || this.state.clientId === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
 
-                                            {this.state.authType === 'SofSystem' ? (
+                                            {this.state.authType !== 'SofProvider' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
                                                     <Form.Label column sm={2}>
                                                         Client Secret:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
+                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Client Secret.
                                                         </Form.Control.Feedback>
@@ -323,31 +329,31 @@ class PublicHealthAuthority extends Component {
                                                 </Form.Group>
                                             ) : ''}
 
-
+                                            {this.state.authType === 'UserNamePwd' ? (
                                             <Form.Group as={Row} controlId="formHorizontalUsername">
                                                 <Form.Label column sm={2}>
                                                     Username:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="Username" name="username" onChange={e => this.handleChange(e)} value={this.state.username} />
+                                                    <Form.Control type="text" placeholder="Username" name="username" required onChange={e => this.handleChange(e)} value={this.state.username} />
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Username.
                                                     </Form.Control.Feedback>
                                                 </Col>
-                                            </Form.Group>
+                                            </Form.Group> ) : ''}
 
-
+                                            {this.state.authType === 'UserNamePwd' ? (
                                             <Form.Group as={Row} controlId="formHorizontalPassword">
                                                 <Form.Label column sm={2}>
                                                     Password:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="password" placeholder="Password" name="password" onChange={e => this.handleChange(e)} value={this.state.password} />
+                                                    <Form.Control type="password" placeholder="Password" name="password" required onChange={e => this.handleChange(e)} value={this.state.password} />
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Password.
                                                     </Form.Control.Feedback>
                                                 </Col>
-                                            </Form.Group>
+                                            </Form.Group>) : ''}
 
                                             <Form.Group as={Row} controlId="formHorizontalScopes">
                                                 <Form.Label column sm={2}>
@@ -372,7 +378,7 @@ class PublicHealthAuthority extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
-                                            {this.state.authType === 'SofSystem' ? (
+
                                                 <Form.Group as={Row} controlId="formHorizontalTokenURL">
                                                     <Form.Label column sm={2}>
                                                         Token Endpoint:
@@ -385,7 +391,6 @@ class PublicHealthAuthority extends Component {
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
-                                            ) : ''} 
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>

@@ -37,20 +37,7 @@ class HealthCareSettings extends Component {
         console.log(this.selectedHealthCareSettings);
         if (!this.addNewHealthCare && !this.isEmpty(this.selectedHealthCareSettings)) {
           console.log("Inside If");
-            if (this.selectedHealthCareSettings.authType === 'SofProvider') {
-                this.state.authType = this.selectedHealthCareSettings.authType;
-                this.state.clientId = this.selectedHealthCareSettings.clientId;
-            }
-            if (this.selectedHealthCareSettings.authType === 'SofSystem') {
-                this.state.authType = this.selectedHealthCareSettings.authType;
-                this.state.clientId = this.selectedHealthCareSettings.clientId;
-                this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
-            }
-            if (this.selectedHealthCareSettings.authType === 'userAccountLaunch') {
-                this.state.authType = this.selectedHealthCareSettings.authType;
-                this.state.username = this.selectedHealthCareSettings.clientId;
-                this.state.password = this.selectedHealthCareSettings.clientSecret;
-            }
+  
             if (this.selectedHealthCareSettings.isDirect) {
                 this.state.directType = 'direct';
             }
@@ -60,9 +47,11 @@ class HealthCareSettings extends Component {
             if (this.selectedHealthCareSettings.isRestAPI) {
                 this.state.directType = 'restApi';
             }
-            
+            this.state.authType = this.selectedHealthCareSettings.authType;
             this.state.clientId = this.selectedHealthCareSettings.clientId;
             this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
+            this.state.username = this.selectedHealthCareSettings.username;
+            this.state.password = this.selectedHealthCareSettings.password;
             this.state.fhirServerBaseURL = this.selectedHealthCareSettings.fhirServerBaseURL;
             this.state.tokenEndpoint = this.selectedHealthCareSettings.tokenUrl;
             this.state.scopes = this.selectedHealthCareSettings.scopes;
@@ -197,12 +186,7 @@ class HealthCareSettings extends Component {
     }
 
     handleRadioChange(e) {
-        if(e.target.value === "userAccountLaunch"){
-            this.setState({
-                clientId:''
-            })
-        }
-        if(e.target.value === "SofProvider" || e.target.value === "SofSystem"){
+        if(e.target.value !== "UserNamePwd"){
             this.setState({
                 username:'',
                 password:''
@@ -329,11 +313,13 @@ class HealthCareSettings extends Component {
         var requestMethod = '';
         var healthCareSettings = {
             authType: this.state.authType,
-            clientId: this.state.authType === "userAccountLaunch"?this.state.username:this.state.clientId,
+            clientId: this.state.clientId,
+            username: this.state.username,
+            password: this.state.password,
             isDirect: this.state.directType === "direct" ? true : false,
             isXdr: this.state.directType === "xdr" ? true : false,
             isRestAPI: this.state.directType === "restApi" ? true : false,
-            clientSecret: this.state.clientSecret && this.state.authType === 'SofSystem'  ? this.state.clientSecret : this.state.password,
+            clientSecret: this.state.clientSecret,
             fhirServerBaseURL: this.state.fhirServerBaseURL,
             tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
@@ -592,27 +578,43 @@ class HealthCareSettings extends Component {
                                                             </Form.Check>
                                                         </Col>
                                                         <Col sm={4}>
-                                                            <Form.Check type="radio" id="userAccountLaunch">
-                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'userAccountLaunch'} value="userAccountLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                            <Form.Check type="radio" id="UserNamePwd">
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'UserNamePwd'} value="UserNamePwd" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>Username & Password</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
-                                            {this.state.authType === 'SofSystem' || this.state.authType === 'SofProvider' ? (
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     Client Id:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required onChange={e => this.handleChange(e)} value={this.state.clientId} isInvalid={this.state.isValidated && (this.state.clientId === '' || this.state.clientId === undefined)}/>
+                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={ this.state.clientId} isInvalid={this.state.isValidated && this.state.authType !== 'UserNamePwd' && (this.state.clientId === '' || this.state.clientId === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
                                                 </Col>
-                                            </Form.Group>):(
-                                                <Form.Group as={Row} controlId="formHorizontalClientId">
+                                            </Form.Group>
+                                                
+                                            {this.state.authType === 'SofSystem' || this.state.authType === 'UserNamePwd' ? (
+                                                <Form.Group as={Row} controlId="formHorizontalClientSecret">
+                                                    <Form.Label column sm={2}>
+                                                        Client Secret:
+                                                    </Form.Label>
+                                                    <Col sm={10}>
+                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.authType !== 'UserNamePwd' && this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
+                                                        <Form.Control.Feedback type="invalid">
+                                                            Please provide a Client Secret.
+                                                        </Form.Control.Feedback>
+                                                    </Col>
+                                                </Form.Group>
+                                            ) : ''}
+
+                                            {this.state.authType === 'UserNamePwd' ? (
+                                                
+                                                <Form.Group as={Row} controlId="formHorizontalUserName">
                                                 <Form.Label column sm={2}>
                                                     Username:
                                                 </Form.Label>
@@ -623,29 +625,16 @@ class HealthCareSettings extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
-                                            )}
-
-                                            {this.state.authType === 'SofSystem' ? (
-                                                <Form.Group as={Row} controlId="formHorizontalClientSecret">
-                                                    <Form.Label column sm={2}>
-                                                        Client Secret:
-                                                    </Form.Label>
-                                                    <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
-                                                        <Form.Control.Feedback type="invalid">
-                                                            Please provide a Client Secret.
-                                                        </Form.Control.Feedback>
-                                                    </Col>
-                                                </Form.Group>
                                             ) : ''}
 
-                                            {this.state.authType === 'userAccountLaunch' ? (
-                                                <Form.Group as={Row} controlId="formHorizontalClientSecret">
+                                            {this.state.authType === 'UserNamePwd' ? (
+                                                
+                                                <Form.Group as={Row} controlId="formHorizontalPassword">
                                                     <Form.Label column sm={2}>
                                                         Password:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="password" placeholder="Password" name="password" required={this.state.launchType === 'userAccountLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
+                                                        <Form.Control type="password" placeholder="Password" name="password" required  onChange={e => this.handleChange(e)} value={this.state.password} />
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Password.
                                                         </Form.Control.Feedback>
@@ -676,7 +665,22 @@ class HealthCareSettings extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
-                                            <Form.Group as={Row} controlId="formHorizaontalSubscriptionsEnabled">
+                                           
+                                            
+                                                <Form.Group as={Row} controlId="formHorizontalTokenURL">
+                                                    <Form.Label column sm={2}>
+                                                        Token Endpoint:
+                                                    </Form.Label>
+                                                    <Col sm={10}>
+                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint"  onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} isInvalid={this.state.isValidated && (this.state.tokenEndpoint === '' || this.state.tokenEndpoint === undefined)}/>
+
+                                                        <Form.Control.Feedback type="invalid">
+                                                            Please provide a FHIR Server Token URL.
+                                                        </Form.Control.Feedback>
+                                                    </Col>
+                                                </Form.Group>
+
+                                                <Form.Group as={Row} controlId="formHorizaontalSubscriptionsEnabled">
                                                 <Form.Label column sm={2}>
                                                     Subscriptions Enabled:
                                                 </Form.Label>
@@ -715,19 +719,6 @@ class HealthCareSettings extends Component {
                                                             <Form.Control type="text" placeholder="Organization ID" name="orgId" onChange={e => this.handleChange(e)} value={this.state.orgId || ''}/>
                                                         </Col>
                                             </Form.Group>
-                                            
-                                                <Form.Group as={Row} controlId="formHorizontalTokenURL">
-                                                    <Form.Label column sm={2}>
-                                                        Token Endpoint:
-                                                    </Form.Label>
-                                                    <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint"  onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} isInvalid={this.state.isValidated && (this.state.tokenEndpoint === '' || this.state.tokenEndpoint === undefined)}/>
-
-                                                        <Form.Control.Feedback type="invalid">
-                                                            Please provide a FHIR Server Token URL.
-                                                        </Form.Control.Feedback>
-                                                    </Col>
-                                                </Form.Group>
                                             
                                         </Card.Body>
                                     </Accordion.Collapse>

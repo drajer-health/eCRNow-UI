@@ -17,6 +17,7 @@ class HealthCareSettings extends Component {
             validated: false,
             isValidated:false,
             isChecked: false,
+            isAudRequired:false,
             karFhirServerURLList:[],
             karsByHsIdList:[],
             isKarFhirServerURLSelected:false,
@@ -37,7 +38,7 @@ class HealthCareSettings extends Component {
         console.log(this.selectedHealthCareSettings);
         if (!this.addNewHealthCare && !this.isEmpty(this.selectedHealthCareSettings)) {
           console.log("Inside If");
-            if (this.selectedHealthCareSettings.authType === 'SofProvider') {
+            if (this.selectedHealthCareSettings.authType === 'SofBackend') {
                 this.state.authType = this.selectedHealthCareSettings.authType;
                 this.state.clientId = this.selectedHealthCareSettings.clientId;
             }
@@ -48,8 +49,8 @@ class HealthCareSettings extends Component {
             }
             if (this.selectedHealthCareSettings.authType === 'userAccountLaunch') {
                 this.state.authType = this.selectedHealthCareSettings.authType;
-                this.state.username = this.selectedHealthCareSettings.clientId;
-                this.state.password = this.selectedHealthCareSettings.clientSecret;
+                this.state.username = this.selectedHealthCareSettings.username;
+                this.state.password = this.selectedHealthCareSettings.password;
             }
             if (this.selectedHealthCareSettings.isDirect) {
                 this.state.directType = 'direct';
@@ -59,6 +60,28 @@ class HealthCareSettings extends Component {
             }
             if (this.selectedHealthCareSettings.isRestAPI) {
                 this.state.directType = 'restApi';
+            }
+            if (this.selectedHealthCareSettings.fhirAPI) {
+                this.state.directType = 'fhir';
+            }
+
+            if (this.selectedHealthCareSettings.imapPort != null && this.selectedHealthCareSettings.imapUrl != null) {
+                this.state.readMessageType = 'imap';
+            } else if (this.selectedHealthCareSettings.popPort != null && this.selectedHealthCareSettings.popUrl != null) {
+                this.state.readMessageType = 'pop3';
+            } else {
+                this.state.readMessageType = 'pop3';
+            }
+
+            if (this.selectedHealthCareSettings.createDocRefForResponse) {
+                this.state.responseProcessingType = "createDocRef";
+            } else if (this.selectedHealthCareSettings.handOffResponseToRestApi != null) {
+                this.state.responseProcessingType = "invokeRestAPI";
+            } 
+            if(this.selectedHealthCareSettings.phaUrl != null){
+                this.state.submitReportTo = 'pha'
+            } else if(this.selectedHealthCareSettings.trustedThirdParty != null){
+                this.state.submitReportTo ='ttp'
             }
             
             this.state.clientId = this.selectedHealthCareSettings.clientId;
@@ -70,16 +93,35 @@ class HealthCareSettings extends Component {
             this.state.directUserName = this.selectedHealthCareSettings.directUser;
             this.state.directPwd = this.selectedHealthCareSettings.directPwd;
             this.state.directRecipientAddress = this.selectedHealthCareSettings.directRecipientAddress;
+            this.state.xdrRecipientAddress = this.selectedHealthCareSettings.xdrRecipientAddress;
             this.state.smtpPort = this.selectedHealthCareSettings.smtpPort;
+            this.state.smtpUrl =  this.selectedHealthCareSettings.smtpUrl;
+            this.state.imapUrl = this.selectedHealthCareSettings.imapUrl;
             this.state.imapPort = this.selectedHealthCareSettings.imapPort;
+            this.state.pop3Url = this.selectedHealthCareSettings.popUrl;
+            this.state.pop3Port = this.selectedHealthCareSettings.popPort;
             this.state.restApiUrl= this.selectedHealthCareSettings.restApiUrl;
             this.state.assigningAuthorityId = this.selectedHealthCareSettings.assigningAuthorityId;
             this.state.startThreshold = this.selectedHealthCareSettings.encounterStartThreshold;
             this.state.endThreshold = this.selectedHealthCareSettings.encounterEndThreshold;
+            this.state.orgName = this.selectedHealthCareSettings.orgName;
+            this.state.orgIdSystem = this.selectedHealthCareSettings.orgIdSystem;
+            this.state.orgId = this.selectedHealthCareSettings.orgId;
+            this.state.defaultProviderId = this.selectedHealthCareSettings.defaultProviderId;
+            this.state.handOffResponseToRestApi = this.selectedHealthCareSettings.handOffResponseToRestApi;
+            this.state.docRefMimeType = this.selectedHealthCareSettings.docRefMimeType;
+            this.state.keystoreAlias = this.selectedHealthCareSettings.backendAuthKeyAlias;
+            this.state.phaUrl = this.selectedHealthCareSettings.phaUrl;
+            this.state.ttpUrl = this.selectedHealthCareSettings.trustedThirdParty;
+
+            
+            if(this.selectedHealthCareSettings.requireAud){
+                this.state.isAudRequired =true;
+            }
             this.getKARs();
             this.getKARSByHsId(this.selectedHealthCareSettings.id);
         } else {
-            this.state.authType = 'SofProvider';
+            this.state.authType = 'SofSystem';
             this.state.directType = 'direct';
         }
         this.state.isSaved = false;
@@ -192,15 +234,18 @@ class HealthCareSettings extends Component {
     }
 
     handleRadioChange(e) {
+        console.log(e.target.value);
         if(e.target.value === "userAccountLaunch"){
             this.setState({
-                clientId:''
+                username:''
             })
         }
-        if(e.target.value === "SofProvider" || e.target.value === "SofSystem"){
+        if(e.target.value === "SofBackend" || e.target.value === "SofSystem"){
             this.setState({
                 username:'',
-                password:''
+                password:'',
+                clientId:'',
+                clientSecret:''
             })
         }
         this.setState({
@@ -214,6 +259,33 @@ class HealthCareSettings extends Component {
             directType: e.target.value
         });
     }
+
+    handleReadMessageTypeChange(e) {
+        console.log(e.target.value);
+        this.setState({
+            readMessageType: e.target.value
+        });
+    }
+
+    handleSubmitReportToChange(e){
+        console.log(e.target.value);
+        if(e.target.value === "pha"){
+            this.state.ttpUrl = ""
+        } 
+        if(e.target.value === "ttp"){
+            this.state.ttpUrl = ""
+        }
+        this.setState({
+            submitReportTo: e.target.value
+        });
+    }
+
+    handleResponseProcessingChange(e) {
+        this.setState({
+            responseProcessingType: e.target.value
+        });
+    }
+
     handleReportChange(e) {
         this.setState({
             reportType: e.target.value
@@ -265,10 +337,12 @@ class HealthCareSettings extends Component {
     handleToggleButton(e) {
         console.log(e);
         console.log(e.target.value);
-        if (this.state.isChecked) {
-            this.setState({ isChecked: false, isLoggingEnabled: false });
+        if (this.state.isAudRequired) {
+            console.log("inside if");
+            this.setState({ isAudRequired: false});
         } else {
-            this.setState({ isChecked: true, isLoggingEnabled: true });
+            console.log("inside else");
+            this.setState({ isAudRequired: true});
         }
         console.log(this.state);
     }
@@ -320,15 +394,17 @@ class HealthCareSettings extends Component {
     saveHealthCareSettings() {
         console.log("clicked");
         console.log(this.selectedHealthCareSettings);
-        console.log(this.state.xdrRecipientAddress);
+        console.log(this.state.submitReportTo);
+        console.log(this.state.phaUrl);
         var requestMethod = '';
         var healthCareSettings = {
             authType: this.state.authType,
-            clientId: this.state.authType === "userAccountLaunch"?this.state.username:this.state.clientId,
+            clientId: this.state.authType === "SofSystem" && this.state.clientId ?this.state.clientId:this.state.username,
             isDirect: this.state.directType === "direct" ? true : false,
             isXdr: this.state.directType === "xdr" ? true : false,
             isRestAPI: this.state.directType === "restApi" ? true : false,
-            clientSecret: this.state.clientSecret && this.state.authType === 'SofSystem'  ? this.state.clientSecret : this.state.password,
+            fhirAPI: this.state.directType === "fhir" ? true : false,
+            clientSecret: this.state.clientSecret ? this.state.clientSecret : null,
             fhirServerBaseURL: this.state.fhirServerBaseURL,
             tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
@@ -336,14 +412,33 @@ class HealthCareSettings extends Component {
             directUser: this.state.directUserName && this.state.directType === "direct" ? this.state.directUserName : null,
             directPwd: this.state.directPwd && this.state.directType === "direct" ? this.state.directPwd : null,
             smtpPort: this.state.smtpPort && this.state.directType === "direct" ? this.state.smtpPort : null,
-            imapPort: this.state.imapPort && this.state.directType === "direct" ? this.state.imapPort : null,
+            smtpUrl: this.state.smtpUrl && this.state.directType === "direct" ? this.state.smtpUrl : null,
+            imapUrl: this.state.readMessageType === 'imap' && this.state.directType === 'direct' && this.state.imapUrl ? this.state.imapUrl : null,
+            imapPort: this.state.readMessageType === 'imap' && this.state.imapPort && this.state.directType === "direct" ? this.state.imapPort : null,
+            popUrl: this.state.readMessageType === 'pop3' && this.state.directType === 'direct' && this.state.pop3Url ? this.state.pop3Url : null,
+            popPort:this.state.readMessageType === 'pop3' && this.state.pop3Port && this.state.directType === "direct" ? this.state.pop3Port : null,
             directRecipientAddress: this.state.directRecipientAddress && this.state.directType === "direct" ? this.state.directRecipientAddress : null,
             xdrRecipientAddress: this.state.xdrRecipientAddress && this.state.directType === "xdr" ? this.state.xdrRecipientAddress : null,
             restApiUrl: this.state.restApiUrl && this.state.directType === "restApi" ? this.state.restApiUrl : null,
             assigningAuthorityId : this.state.assigningAuthorityId?this.state.assigningAuthorityId:null,
             encounterStartThreshold: this.state.startThreshold,
             encounterEndThreshold: this.state.endThreshold,
-            lastUpdated:new Date()
+            lastUpdated:new Date(),
+            requireAud: this.state.isAudRequired,
+            backendAuthKeyAlias: this.state.keystoreAlias? this.state.keystoreAlias:null,
+            username: this.state.username?this.state.username:null,
+            password:this.state.password? this.state.password: null,
+            createDocRefForResponse: this.state.responseProcessingType === 'createDocRef'?true:false,
+            docRefMimeType: this.state.responseProcessingType === 'createDocRef' && this.state.docRefMimeType != null ? this.state.docRefMimeType: null,
+            handOffResponseToRestApi: this.state.responseProcessingType === 'invokeRestAPI' && this.state.handOffResponseToRestApi? this.state.handOffResponseToRestApi: null,
+            phaUrl:this.state.submitReportTo === 'pha' && this.state.phaUrl? this.state.phaUrl: null,
+            trustedThirdParty:this.state.submitReportTo === 'ttp' && this.state.ttpUrl? this.state.ttpUrl: null,
+            orgName: this.state.orgName? this.state.orgName: null,
+            orgIdSystem: this.state.orgIdSystem ? this.state.orgIdSystem: null,
+            orgId: this.state.orgId ? this.state.orgId :null,
+            assigningAuthorityId : this.state.assigningAuthorityId ? this.state.assigningAuthorityId : null,
+            defaultProviderId: this.state.defaultProviderId ? this.state.defaultProviderId : null,
+
         };
         if (!this.addNewHealthCare && this.selectedHealthCareSettings) {
           healthCareSettings['id'] = this.selectedHealthCareSettings.id;
@@ -352,7 +447,7 @@ class HealthCareSettings extends Component {
             requestMethod = 'POST';
         }
         console.log(this.geturl());
-        console.log(JSON.stringify(healthCareSettings));
+        console.log(healthCareSettings);
         
         // var serviceURL = this.geturl();
         fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/healthcareSettings", {
@@ -570,15 +665,15 @@ class HealthCareSettings extends Component {
                                                 <Col sm={10}>
                                                     <Row>
                                                         <Col sm={4}>
-                                                            <Form.Check type="radio" id="providerLaunch">
-                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'SofProvider'} value="SofProvider" name="authType" onChange={e => this.handleRadioChange(e)} />
-                                                                <Form.Check.Label>Provider Launch</Form.Check.Label>
-                                                            </Form.Check>
-                                                        </Col>
-                                                        <Col sm={4}>
                                                             <Form.Check type="radio" id="systemLaunch">
                                                                 <Form.Check.Input type="radio" checked={this.state.authType === 'SofSystem'} value="SofSystem" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>System Launch</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="backend">
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'SofBackend'} value="SofBackend" name="authType" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Label>Backend</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
                                                         <Col sm={4}>
@@ -590,7 +685,7 @@ class HealthCareSettings extends Component {
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
-                                            {this.state.authType === 'SofSystem' || this.state.authType === 'SofProvider' ? (
+                                            {this.state.authType === 'SofSystem' || this.state.authType === 'SofBackend' ? (
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     Client Id:
@@ -602,7 +697,7 @@ class HealthCareSettings extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>):(
-                                                <Form.Group as={Row} controlId="formHorizontalClientId">
+                                                <Form.Group as={Row} controlId="formHorizontalUsername">
                                                 <Form.Label column sm={2}>
                                                     Username:
                                                 </Form.Label>
@@ -635,7 +730,7 @@ class HealthCareSettings extends Component {
                                                         Password:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="password" placeholder="Password" name="password" required={this.state.launchType === 'userAccountLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
+                                                        <Form.Control type="password" placeholder="Password" name="password" required={this.state.authType === 'userAccountLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Password.
                                                         </Form.Control.Feedback>
@@ -680,7 +775,37 @@ class HealthCareSettings extends Component {
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
-                                            
+
+                                            {this.state.authType === 'SofSystem' ? (
+                                            <Form.Group as={Row} controlId="requireAud">
+                                                <Form.Label column sm={2}>Require Aud Parameter?</Form.Label>
+                                                <Col sm={9}>
+                                                    <Form.Check
+                                                        type="switch"
+                                                        id="enableLogging-switch2"
+                                                        onChange={e => this.handleToggleButton(e)}
+                                                        label=""
+                                                        className="switchBtn"
+                                                        name="requireAud"
+                                                        checked={this.state.isAudRequired}
+                                                    />
+                                                </Col>
+                                            </Form.Group>
+                                            ) : ''}
+                                            {this.state.authType === 'SofBackend' ? (
+                                                <Form.Group as={Row} controlId="formHorizontalKeystoreAlias">
+                                                    <Form.Label column sm={2}>
+                                                        Keystore Alias:
+                                                    </Form.Label>
+                                                    <Col sm={10}>
+                                                        <Form.Control type="text" placeholder="Keystore Alias" name="keystoreAlias"  onChange={e => this.handleChange(e)} value={this.state.keystoreAlias} isInvalid={this.state.isValidated && (this.state.keystoreAlias === '' || this.state.keystoreAlias === undefined)}/>
+
+                                                        <Form.Control.Feedback type="invalid">
+                                                            Please provide Keystore Alias.
+                                                        </Form.Control.Feedback>
+                                                    </Col>
+                                                </Form.Group>
+                                            ) : ''}
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>
@@ -697,22 +822,28 @@ class HealthCareSettings extends Component {
                                                 </Form.Label>
                                                 <Col sm={10}>
                                                     <Row>
-                                                        <Col sm={4}>
+                                                        <Col sm={3}>
                                                             <Form.Check type="radio" id="direct">
                                                                 <Form.Check.Input type="radio" checked={this.state.directType === 'direct'} value="direct" onChange={e => this.handleDirectChange(e)} />
                                                                 <Form.Check.Label>Direct</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
-                                                        <Col sm={4}>
+                                                        <Col sm={3}>
                                                             <Form.Check type="radio" id="xdr">
                                                                 <Form.Check.Input type="radio" checked={this.state.directType === 'xdr'} value="xdr" onChange={e => this.handleDirectChange(e)} />
                                                                 <Form.Check.Label>XDR</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
-                                                        <Col sm={4}>
+                                                        <Col sm={3}>
                                                             <Form.Check type="radio" id="restApi">
                                                                 <Form.Check.Input type="radio" checked={this.state.directType === 'restApi'} value="restApi" onChange={e => this.handleDirectChange(e)} />
                                                                 <Form.Check.Label>Rest API</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={3}>
+                                                            <Form.Check type="radio" id="fhir">
+                                                                <Form.Check.Input type="radio" checked={this.state.directType === 'fhir'} value="fhir" onChange={e => this.handleDirectChange(e)} />
+                                                                <Form.Check.Label>FHIR</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
                                                     </Row>
@@ -768,6 +899,17 @@ class HealthCareSettings extends Component {
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
+                                                    <Form.Group as={Row} controlId="smtpUrl">
+                                                        <Form.Label column sm={2}>
+                                                            SMTP URL:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" name="smtpUrl" required={this.state.directType === 'direct' ? true : false} placeholder="SMTP URL" onChange={e => this.handleChange(e)} value={this.state.smtpUrl} isInvalid={this.state.isValidated && (this.state.smtpUrl === '' || this.state.smtpUrl === undefined)}/>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a SMTP URL.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
                                                     <Form.Group as={Row} controlId="smtpPort">
                                                         <Form.Label column sm={2}>
                                                             SMTP Port:
@@ -779,17 +921,82 @@ class HealthCareSettings extends Component {
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
-                                                    <Form.Group as={Row} controlId="imapPort">
+                                                    <Form.Group as={Row} controlId="formHorizontalReceiveType">
                                                         <Form.Label column sm={2}>
-                                                            IMAP Port:
+                                                            Read Messages Using:
                                                         </Form.Label>
                                                         <Col sm={10}>
-                                                            <Form.Control type="text" name="imapPort" required={this.state.directType === 'direct' ? true : false} placeholder="IMAP Port" onChange={e => this.handleChange(e)} value={this.state.imapPort} isInvalid={this.state.isValidated && (this.state.imapPort === '' || this.state.imapPort === undefined)}/>
-                                                            <Form.Control.Feedback type="invalid">
-                                                                Please provide a IMAP Port.
-                                                            </Form.Control.Feedback>
+                                                            <Row>
+                                                                <Col sm={4}>
+                                                                    <Form.Check type="radio" id="pop3">
+                                                                        <Form.Check.Input type="radio" checked={this.state.readMessageType === 'pop3'} value="pop3" onChange={e => this.handleReadMessageTypeChange(e)} />
+                                                                        <Form.Check.Label>POP3</Form.Check.Label>
+                                                                    </Form.Check>
+                                                                </Col>
+                                                                <Col sm={4}>
+                                                                    <Form.Check type="radio" id="imap">
+                                                                        <Form.Check.Input type="radio" checked={this.state.readMessageType === 'imap'} value="imap" onChange={e => this.handleReadMessageTypeChange(e)} />
+                                                                        <Form.Check.Label>IMAP</Form.Check.Label>
+                                                                    </Form.Check>
+                                                                </Col>
+                                                            </Row>
                                                         </Col>
                                                     </Form.Group>
+
+                                                    {this.state.readMessageType === 'imap' ? (
+                                                        <div>
+                                                            <Form.Group as={Row} controlId="imapUrl">
+                                                                <Form.Label column sm={2}>
+                                                                    IMAP URL:
+                                                                </Form.Label>
+                                                                <Col sm={10}>
+                                                                    <Form.Control type="text" name="imapUrl" required={this.state.readMessagesType === 'imap' ? true : false} placeholder="IMAP URL" onChange={e => this.handleChange(e)} value={this.state.imapUrl} isInvalid={this.state.isValidated && (this.state.imapUrl === '' || this.state.imapUrl === undefined)}/>
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Please provide a IMAP URL.
+                                                                    </Form.Control.Feedback>
+                                                                </Col>
+                                                            </Form.Group>
+                                                            <Form.Group as={Row} controlId="imapPort">
+                                                                <Form.Label column sm={2}>
+                                                                    IMAP Port:
+                                                                </Form.Label>
+                                                                <Col sm={10}>
+                                                                    <Form.Control type="text" name="imapPort" required={this.state.directType === 'imap' ? true : false} placeholder="IMAP Port" onChange={e => this.handleChange(e)} value={this.state.imapPort} isInvalid={this.state.isValidated && (this.state.imapPort === '' || this.state.imapPort === undefined)}/>
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Please provide a IMAP Port.
+                                                                    </Form.Control.Feedback>
+                                                                </Col>
+                                                            </Form.Group>
+                                                        </div>
+                                                    ):''}
+
+                                                    {this.state.readMessageType === 'pop3' ? (
+                                                        <div>
+                                                            <Form.Group as={Row} controlId="pop3Url">
+                                                                <Form.Label column sm={2}>
+                                                                    POP3 URL:
+                                                                </Form.Label>
+                                                                <Col sm={10}>
+                                                                    <Form.Control type="text" name="pop3Url" required={this.state.readMessagesType === 'pop3' ? true : false} placeholder="POP3 URL" onChange={e => this.handleChange(e)} value={this.state.pop3Url} isInvalid={this.state.isValidated && (this.state.pop3Url === '' || this.state.pop3Url === undefined)}/>
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Please provide a POP3 URL.
+                                                                    </Form.Control.Feedback>
+                                                                </Col>
+                                                            </Form.Group>
+                                                            <Form.Group as={Row} controlId="pop3Port">
+                                                                <Form.Label column sm={2}>
+                                                                    POP3 Port:
+                                                                </Form.Label>
+                                                                <Col sm={10}>
+                                                                    <Form.Control type="text" name="pop3Port" required={this.state.directType === 'pop3' ? true : false} placeholder="POP3 Port" onChange={e => this.handleChange(e)} value={this.state.pop3Port} isInvalid={this.state.isValidated && (this.state.pop3Port === '' || this.state.pop3Port === undefined)}/>
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Please provide a POP3 Port.
+                                                                    </Form.Control.Feedback>
+                                                                </Col>
+                                                            </Form.Group>
+                                                        </div>
+                                                    ):''}
+                                                    
                                                 </div>
                                             ) : ''}
 
@@ -824,6 +1031,62 @@ class HealthCareSettings extends Component {
                                                     </Form.Group>
                                                 </div>
                                             ) : ''}
+                                            {this.state.directType === 'fhir' ? (
+                                                <div>
+                                                    <Form.Group as={Row} controlId="formHorizontalSubmitReportTo">
+                                                        <Form.Label column sm={2}>
+                                                            Submit Report To:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Row>
+                                                                <Col sm={4}>
+                                                                    <Form.Check type="radio" id="pha">
+                                                                        <Form.Check.Input type="radio" checked={this.state.submitReportTo === 'pha'} value="pha" onChange={e => this.handleSubmitReportToChange(e)} />
+                                                                        <Form.Check.Label>Public Health Authority</Form.Check.Label>
+                                                                    </Form.Check>
+                                                                </Col>
+                                                                <Col sm={4}>
+                                                                    <Form.Check type="radio" id="ttp">
+                                                                        <Form.Check.Input type="radio" checked={this.state.submitReportTo === 'ttp'} value="ttp" onChange={e => this.handleSubmitReportToChange(e)} />
+                                                                        <Form.Check.Label>Trusted Third Party</Form.Check.Label>
+                                                                    </Form.Check>
+                                                                </Col>
+                                                            </Row>
+                                                        </Col>
+                                                    </Form.Group>
+                                                    {this.state.submitReportTo === 'pha' ? (
+                                                        <div>
+                                                            <Form.Group as={Row} controlId="phaUrl">
+                                                                <Form.Label column sm={2}>
+                                                                    Public Health Authority Endpoint:
+                                                                </Form.Label>
+                                                                <Col sm={10}>
+                                                                    <Form.Control type="text" placeholder="PHA URL" required={this.state.submitReportTo === 'pha' ? true : false} name="phaUrl" onChange={e => this.handleChange(e)} value={this.state.phaUrl} isInvalid={this.state.isValidated && (this.state.phaUrl === '' || this.state.phaUrl === undefined)}/>
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Please provide PHA URL.
+                                                                    </Form.Control.Feedback>
+                                                                </Col>
+                                                            </Form.Group>
+                                                        </div>
+                                                    ):''}
+                                                    {this.state.submitReportTo === 'ttp' ? (
+                                                        <div>
+                                                            <Form.Group as={Row} controlId="ttpUrl">
+                                                                <Form.Label column sm={2}>
+                                                                    Trusted Third Party URL:
+                                                                </Form.Label>
+                                                                <Col sm={10}>
+                                                                    <Form.Control type="text" placeholder="Trusted Third Party URL" required={this.state.submitReportTo === 'ttp' ? true : false} name="ttpUrl" onChange={e => this.handleChange(e)} value={this.state.ttpUrl} isInvalid={this.state.isValidated && (this.state.ttpUrl === '' || this.state.ttpUrl === undefined)}/>
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Please provide TTP URL.
+                                                                    </Form.Control.Feedback>
+                                                                </Col>
+                                                            </Form.Group>
+                                                        </div>
+                                                    ):''}
+                                                    
+                                                </div>
+                                            ) : ''}
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>
@@ -835,7 +1098,7 @@ class HealthCareSettings extends Component {
                                     <Accordion.Collapse eventKey="2">
                                         <Card.Body className="appConfiguration">
 
-                                            <Form.Group as={Row} controlId="assigningAuthorityId">
+                                            {/* <Form.Group as={Row} controlId="assigningAuthorityId">
                                                 <Form.Label column sm={2}>
                                                     Assigning Authority Id:
                                                 </Form.Label>
@@ -845,7 +1108,7 @@ class HealthCareSettings extends Component {
                                                         Please provide a Assigning Authority Id.
                                                     </Form.Control.Feedback>
                                                 </Col>
-                                            </Form.Group>
+                                            </Form.Group> */}
 
                                             <Form.Group as={Row} controlId="startThreshold">
                                                 <Form.Label column sm={2}>
@@ -870,6 +1133,143 @@ class HealthCareSettings extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
+
+                                        </Card.Body>
+                                    </Accordion.Collapse>
+                                </Card>
+
+                                <Card className="accordionCards">
+                                    <Accordion.Toggle as={Card.Header} eventKey="4">
+                                        Organization Defaults
+                                    </Accordion.Toggle>
+                                    <Accordion.Collapse eventKey="4">
+                                        <Card.Body className="Organization Defaults">
+                                            
+                                            <Form.Group as={Row} controlId="orgName">
+                                                <Form.Label column sm={2}>
+                                                    Organization Name:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Organization Name" required name="orgName" onChange={e => this.handleChange(e)} value={this.state.orgName} isInvalid={this.state.isValidated && (this.state.orgName === '' || this.state.orgName === undefined)}/>
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide Organization Name.
+                                                    </Form.Control.Feedback>
+                                                </Col>
+                                            </Form.Group>
+
+                                            <Form.Group as={Row} controlId="orgIdSystem">
+                                                <Form.Label column sm={2}>
+                                                    Organization Name Space URL:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Organization Name Space URL" required name="orgIdSystem" onChange={e => this.handleChange(e)} value={this.state.orgIdSystem} isInvalid={this.state.isValidated && (this.state.orgIdSystem === '' || this.state.orgIdSystem === undefined)}/>
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide Organization Name Space URL.
+                                                    </Form.Control.Feedback>
+                                                </Col>
+                                            </Form.Group>
+
+                                            <Form.Group as={Row} controlId="endThreshold">
+                                                <Form.Label column sm={2}>
+                                                    Organization Id:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Organization Id" required name="orgId" onChange={e => this.handleChange(e)} value={this.state.orgId} isInvalid={this.state.isValidated && (this.state.orgId === '' || this.state.orgId === undefined)}/>
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide Organization Id.
+                                                    </Form.Control.Feedback>
+                                                </Col>
+                                            </Form.Group>
+
+                                            <Form.Group as={Row} controlId="assigningAuthorityId">
+                                                <Form.Label column sm={2}>
+                                                    Assigning Authority Id:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Assigning Authority Id" required name="assigningAuthorityId" onChange={e => this.handleChange(e)} value={this.state.assigningAuthorityId} isInvalid={this.state.isValidated && (this.state.assigningAuthorityId === '' || this.state.assigningAuthorityId === undefined)}/>
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide Assigning Authority Id.
+                                                    </Form.Control.Feedback>
+                                                </Col>
+                                            </Form.Group>
+
+                                            <Form.Group as={Row} controlId="defaultProviderId">
+                                                <Form.Label column sm={2}>
+                                                    Default Provider Id:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Default Provider Id" required name="defaultProviderId" onChange={e => this.handleChange(e)} value={this.state.defaultProviderId} isInvalid={this.state.isValidated && (this.state.defaultProviderId === '' || this.state.defaultProviderId === undefined)}/>
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide Default Provider Id.
+                                                    </Form.Control.Feedback>
+                                                </Col>
+                                            </Form.Group>
+                                        
+
+                                        </Card.Body>
+                                    </Accordion.Collapse>
+                                </Card>
+
+                                <Card className="accordionCards">
+                                    <Accordion.Toggle as={Card.Header} eventKey="5">
+                                        Response Options
+                                    </Accordion.Toggle>
+                                    <Accordion.Collapse eventKey="5">
+                                        <Card.Body className="Organization Defaults">
+                                        <Form.Group as={Row} controlId="responseProcessingType">
+                                                <Form.Label column sm={2}>
+                                                    Response Processing Type:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Row>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="createDocRef">
+                                                                <Form.Check.Input type="radio" checked={this.state.responseProcessingType === 'createDocRef'} value="createDocRef" onChange={e => this.handleResponseProcessingChange(e)} />
+                                                                <Form.Check.Label>Create Document Reference</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="invokeRestAPI">
+                                                                <Form.Check.Input type="radio" checked={this.state.responseProcessingType === 'invokeRestAPI'} value="invokeRestAPI" onChange={e => this.handleResponseProcessingChange(e)} />
+                                                                <Form.Check.Label>Invoke Rest API</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                            </Form.Group>
+                                            
+                                            {this.state.responseProcessingType === 'invokeRestAPI'? (
+                                                <div>
+                                                    <Form.Group as={Row} controlId="handOffResponseToRestApi">
+                                                        <Form.Label column sm={2}>
+                                                            Hand off Response to Rest API URL:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="Rest API URL" required={this.state.responseProcessingType === 'invokeRestAPI' ? true : false} name="handOffResponseToRestApi" onChange={e => this.handleChange(e)} value={this.state.handOffResponseToRestApi} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a Rest API URL.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                </div>
+                                            ) : ''}
+                                            {this.state.responseProcessingType === 'createDocRef'? (
+                                                <div>
+                                                    <Form.Group as={Row} controlId="docRefMimeType">
+                                                        <Form.Label column sm={2}>
+                                                            Document Reference Mime Type:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="DocumentReference Mime Type" required={this.state.responseProcessingType === 'createDocRef' ? true : false} name="docRefMimeType" onChange={e => this.handleChange(e)} value={this.state.docRefMimeType} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide DocumentReference Mime Type.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                </div>
+                                            ):''}
+                                            
+                                        
 
                                         </Card.Body>
                                     </Accordion.Collapse>

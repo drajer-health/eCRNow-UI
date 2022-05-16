@@ -18,6 +18,7 @@ class HealthCareSettings extends Component {
             isValidated:false,
             isChecked: false,
             isAudRequired:false,
+            ehrSupportsSubscriptions:false,
             karFhirServerURLList:[],
             karsByHsIdList:[],
             isKarFhirServerURLSelected:false,
@@ -42,12 +43,12 @@ class HealthCareSettings extends Component {
                 this.state.authType = this.selectedHealthCareSettings.authType;
                 this.state.clientId = this.selectedHealthCareSettings.clientId;
             }
-            if (this.selectedHealthCareSettings.authType === 'SofSystem') {
+            if (this.selectedHealthCareSettings.authType === 'System' || this.selectedHealthCareSettings.authType === 'MultiTenantSystemLaunch') {
                 this.state.authType = this.selectedHealthCareSettings.authType;
                 this.state.clientId = this.selectedHealthCareSettings.clientId;
                 this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
             }
-            if (this.selectedHealthCareSettings.authType === 'userAccountLaunch') {
+            if (this.selectedHealthCareSettings.authType === 'UserNamePwd') {
                 this.state.authType = this.selectedHealthCareSettings.authType;
                 this.state.username = this.selectedHealthCareSettings.username;
                 this.state.password = this.selectedHealthCareSettings.password;
@@ -118,10 +119,13 @@ class HealthCareSettings extends Component {
             if(this.selectedHealthCareSettings.requireAud){
                 this.state.isAudRequired =true;
             }
+            if(this.selectedHealthCareSettings.ehrSupportsSubscriptions){
+                this.state.ehrSupportsSubscriptions =true
+            }
             this.getKARs();
             this.getKARSByHsId(this.selectedHealthCareSettings.id);
         } else {
-            this.state.authType = 'SofSystem';
+            this.state.authType = 'System';
             this.state.directType = 'direct';
         }
         this.state.isSaved = false;
@@ -235,12 +239,12 @@ class HealthCareSettings extends Component {
 
     handleRadioChange(e) {
         console.log(e.target.value);
-        if(e.target.value === "userAccountLaunch"){
+        if(e.target.value === "UserNamePwd"){
             this.setState({
                 username:''
             })
         }
-        if(e.target.value === "SofBackend" || e.target.value === "SofSystem"){
+        if(e.target.value === "SofBackend" || e.target.value === "System" || e.target.value === "MultiTenantSystemLaunch"){
             this.setState({
                 username:'',
                 password:'',
@@ -347,6 +351,14 @@ class HealthCareSettings extends Component {
         console.log(this.state);
     }
 
+    handleEHRSubscriptionsToggle(e){
+        if(this.state.ehrSupportsSubscriptions){
+            this.setState({ ehrSupportsSubscriptions: false});
+        } else{
+            this.setState({ ehrSupportsSubscriptions: true});
+        }
+    }
+
     handleCheckboxChange(e,rowData,columnType){
         console.log(e.target.checked);
         console.log(rowData);
@@ -399,7 +411,7 @@ class HealthCareSettings extends Component {
         var requestMethod = '';
         var healthCareSettings = {
             authType: this.state.authType,
-            clientId: this.state.authType === "SofSystem" && this.state.clientId ?this.state.clientId:this.state.username,
+            clientId: (this.state.authType === "System" || this.state.authType==="MultiTenantSystemLaunch") && this.state.clientId ?this.state.clientId:this.state.username,
             isDirect: this.state.directType === "direct" ? true : false,
             isXdr: this.state.directType === "xdr" ? true : false,
             isRestAPI: this.state.directType === "restApi" ? true : false,
@@ -425,6 +437,7 @@ class HealthCareSettings extends Component {
             encounterEndThreshold: this.state.endThreshold,
             lastUpdated:new Date(),
             requireAud: this.state.isAudRequired,
+            ehrSupportsSubscriptions: this.state.ehrSupportsSubscriptions,
             backendAuthKeyAlias: this.state.keystoreAlias? this.state.keystoreAlias:null,
             username: this.state.username?this.state.username:null,
             password:this.state.password? this.state.password: null,
@@ -664,28 +677,34 @@ class HealthCareSettings extends Component {
                                     </Form.Label>
                                                 <Col sm={10}>
                                                     <Row>
-                                                        <Col sm={4}>
+                                                        <Col sm={3}>
                                                             <Form.Check type="radio" id="systemLaunch">
-                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'SofSystem'} value="SofSystem" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'System'} value="System" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>System Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
-                                                        <Col sm={4}>
+                                                        <Col sm={3}>
+                                                            <Form.Check type="radio" id="multiTenantSystemLaunch">
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'MultiTenantSystemLaunch'} value="MultiTenantSystemLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Label>Multi Tenant System Launch</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={3}>
                                                             <Form.Check type="radio" id="backend">
                                                                 <Form.Check.Input type="radio" checked={this.state.authType === 'SofBackend'} value="SofBackend" name="authType" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>Backend</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
-                                                        <Col sm={4}>
-                                                            <Form.Check type="radio" id="userAccountLaunch">
-                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'userAccountLaunch'} value="userAccountLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                        <Col sm={3}>
+                                                            <Form.Check type="radio" id="UserNamePwd">
+                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'UserNamePwd'} value="UserNamePwd" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>Username & Password</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
-                                            {this.state.authType === 'SofSystem' || this.state.authType === 'SofBackend' ? (
+                                            {this.state.authType === 'System' || this.state.authType === 'MultiTenantSystemLaunch' || this.state.authType === 'SofBackend' ? (
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     Client Id:
@@ -710,7 +729,7 @@ class HealthCareSettings extends Component {
                                             </Form.Group>
                                             )}
 
-                                            {this.state.authType === 'SofSystem' ? (
+                                            {this.state.authType === 'System' || this.state.authType === 'MultiTenantSystemLaunch'? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
                                                     <Form.Label column sm={2}>
                                                         Client Secret:
@@ -724,13 +743,13 @@ class HealthCareSettings extends Component {
                                                 </Form.Group>
                                             ) : ''}
 
-                                            {this.state.authType === 'userAccountLaunch' ? (
+                                            {this.state.authType === 'UserNamePwd' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
                                                     <Form.Label column sm={2}>
                                                         Password:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="password" placeholder="Password" name="password" required={this.state.authType === 'userAccountLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
+                                                        <Form.Control type="password" placeholder="Password" name="password" required={this.state.authType === 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Password.
                                                         </Form.Control.Feedback>
@@ -776,7 +795,7 @@ class HealthCareSettings extends Component {
                                                     </Col>
                                                 </Form.Group>
 
-                                            {this.state.authType === 'SofSystem' ? (
+                                            {this.state.authType === 'System' || this.state.authType === 'MultiTenantSystemLaunch'? (
                                             <Form.Group as={Row} controlId="requireAud">
                                                 <Form.Label column sm={2}>Require Aud Parameter?</Form.Label>
                                                 <Col sm={9}>
@@ -1084,7 +1103,20 @@ class HealthCareSettings extends Component {
                                                             </Form.Group>
                                                         </div>
                                                     ):''}
-                                                    
+                                                    <Form.Group as={Row} controlId="ehrSupportsSubscriptions">
+                                                        <Form.Label column sm={2}>EHR Supports Subscriptions?</Form.Label>
+                                                        <Col sm={9}>
+                                                            <Form.Check
+                                                                type="switch"
+                                                                id="enableLogging-switch10"
+                                                                onChange={e => this.handleEHRSubscriptionsToggle(e)}
+                                                                label=""
+                                                                className="switchBtn"
+                                                                name="ehrSupportsSubscriptions"
+                                                                checked={this.state.ehrSupportsSubscriptions}
+                                                            />
+                                                        </Col>
+                                                    </Form.Group>
                                                 </div>
                                             ) : ''}
                                         </Card.Body>

@@ -796,20 +796,36 @@ class HealthCareSettings extends Component {
                                                 </Form.Group>
 
                                             {this.state.authType === 'System' || this.state.authType === 'MultiTenantSystemLaunch'? (
-                                            <Form.Group as={Row} controlId="requireAud">
-                                                <Form.Label column sm={2}>Require Aud Parameter?</Form.Label>
-                                                <Col sm={9}>
-                                                    <Form.Check
-                                                        type="switch"
-                                                        id="enableLogging-switch2"
-                                                        onChange={e => this.handleToggleButton(e)}
-                                                        label=""
-                                                        className="switchBtn"
-                                                        name="requireAud"
-                                                        checked={this.state.isAudRequired}
-                                                    />
-                                                </Col>
-                                            </Form.Group>
+                                                <div>
+                                                    <Form.Group as={Row} controlId="requireAud">
+                                                        <Form.Label column sm={3}>Require Aud Parameter?</Form.Label>
+                                                        <Col sm={9}>
+                                                            <Form.Check
+                                                                type="switch"
+                                                                id="enableLogging-switch2"
+                                                                onChange={e => this.handleToggleButton(e)}
+                                                                label=""
+                                                                className="switchBtn"
+                                                                name="requireAud"
+                                                                checked={this.state.isAudRequired}
+                                                            />
+                                                        </Col>
+                                                    </Form.Group>
+                                                    <Form.Group as={Row} controlId="ehrSupportsSubscriptions">
+                                                        <Form.Label column sm={3}>EHR Supports Subscriptions?</Form.Label>
+                                                        <Col sm={7}>
+                                                            <Form.Check
+                                                                type="switch"
+                                                                id="enableLogging-switch10"
+                                                                onChange={e => this.handleEHRSubscriptionsToggle(e)}
+                                                                label=""
+                                                                className="switchBtn"
+                                                                name="ehrSupportsSubscriptions"
+                                                                checked={this.state.ehrSupportsSubscriptions}
+                                                            />
+                                                        </Col>
+                                                    </Form.Group>
+                                            </div>
                                             ) : ''}
                                             {this.state.authType === 'SofBackend' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalKeystoreAlias">
@@ -1103,20 +1119,6 @@ class HealthCareSettings extends Component {
                                                             </Form.Group>
                                                         </div>
                                                     ):''}
-                                                    <Form.Group as={Row} controlId="ehrSupportsSubscriptions">
-                                                        <Form.Label column sm={2}>EHR Supports Subscriptions?</Form.Label>
-                                                        <Col sm={9}>
-                                                            <Form.Check
-                                                                type="switch"
-                                                                id="enableLogging-switch10"
-                                                                onChange={e => this.handleEHRSubscriptionsToggle(e)}
-                                                                label=""
-                                                                className="switchBtn"
-                                                                name="ehrSupportsSubscriptions"
-                                                                checked={this.state.ehrSupportsSubscriptions}
-                                                            />
-                                                        </Col>
-                                                    </Form.Group>
                                                 </div>
                                             ) : ''}
                                         </Card.Body>

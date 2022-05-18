@@ -103,7 +103,7 @@ class KAR extends Component {
       const karObj = {
         repoName: this.state.repoName,
         fhirServerURL: this.state.fhirServerURL,
-        kars_info: this.state.details
+        karsInfo: this.state.details
       }
 
       fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/kar", {

@@ -23,7 +23,7 @@ class HealthCareSettings extends Component {
             karsByHsIdList:[],
             isKarFhirServerURLSelected:false,
             selectedKARDetails:[],
-            outputFormats:["FHIR","CDA_R11","CDA_R30","Both"],
+            outputFormats:["FHIR","CDA_R11","CDA_R30","BOTH"],
             hsKARStatus:[]
         };
         this.selectedHealthCareSettings = this.props.selectedHealthCareSettings;

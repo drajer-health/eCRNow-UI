@@ -7,6 +7,8 @@ import ClientDetails from './Views/ClientDetails/ClientDetails';
 import ClientDetailsList from './Views/ClientDetailsList/ClientDetailsList';
 import HealthCareSettings from './Views/HealthCareSettings/HealthCareSettings';
 import HealthCareSettingsList from './Views/HealthCareSettingsList/HealthCareSettingsList';
+import PublicHealthAuthority from './Views/PublicHealthAuthority/PublicHealthAuthority';
+import PublicHealthAuthorityList from './Views/PublicHealthAuthorityList/PublicHealthAuthorityList';
 import KAR from './Views/KAR/KAR';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import ReactNotification from 'react-notifications-component';
@@ -19,12 +21,15 @@ class App extends Component {
       isAuthorized: false,
       selectedClientDetails: {},
       selectedHealthCareSettings:{},
+      selectedPublicHealthAuthority:{},
       addNewHealthCare:true
     };
     this.selectedClientDetails = this.selectedClientDetails.bind(this);
     this.selectedHealthCareSettings = this.selectedHealthCareSettings.bind(this);
     this.addNew = this.addNew.bind(this);
     this.addNewHealthCare = this.addNewHealthCare.bind(this);
+    this.addNewPublicHealthAuthority = this.addNewPublicHealthAuthority.bind(this);
+    this.selectedPublicHealthAuthority = this.selectedPublicHealthAuthority.bind(this);
   }
 
   async selectedClientDetails(_state) {
@@ -38,6 +43,14 @@ class App extends Component {
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
       selectedHealthCareSettings: updatedState
+    });
+  }
+
+
+  async selectedPublicHealthAuthority(_state) {
+    const updatedState = JSON.parse(JSON.stringify(_state));
+    await this.setState({
+      selectedPublicHealthAuthority: updatedState
     });
   }
 
@@ -56,6 +69,13 @@ class App extends Component {
     });
   }
 
+  async addNewPublicHealthAuthority(_state) {
+    console.log(JSON.stringify(_state));
+    const updatedState = JSON.parse(JSON.stringify(_state));
+    await this.setState({
+      addPublicHealthAuthority: updatedState
+    });
+  }
   render() {
     return (
       <div className="App">
@@ -74,6 +94,12 @@ class App extends Component {
               </Switch>
               <Switch>
                 <Route exact path="/healthCareSettings" render={props => (<HealthCareSettings {...props} selectedHealthCareSettings={this.state.selectedHealthCareSettings} addNewHealthCare={this.state.addNewHealthCare}></HealthCareSettings>)}></Route>
+              </Switch>
+              <Switch>
+                <Route exact path="/publicHealthAuthority" render={props => (<PublicHealthAuthority {...props} selectedPublicHealthAuthority={this.state.selectedPublicHealthAuthority} addNewHealthAuthority={this.state.addNewPublicHealthAuthority}></PublicHealthAuthority>)}></Route>
+              </Switch>
+              <Switch>
+                <Route exact path="/publicHealthAuthorityList" render={props => (<PublicHealthAuthorityList {...props} selectedPublicHealthAuthority={this.selectedPublicHealthAuthority} addNewPublicHealthAuthority={this.addNewPublicHealthAuthority} ></PublicHealthAuthorityList>)}></Route>
               </Switch>
               <Switch>
                 <Route exact path="/healthCareSettingsList" render={props => (<HealthCareSettingsList {...props} selectedHealthCareSettings={this.selectedHealthCareSettings} addNewHealthCare={this.addNewHealthCare}></HealthCareSettingsList>)}></Route>

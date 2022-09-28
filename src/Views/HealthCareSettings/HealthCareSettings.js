@@ -87,6 +87,8 @@ class HealthCareSettings extends Component {
             
             this.state.clientId = this.selectedHealthCareSettings.clientId;
             this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
+            this.state.username = this.selectedHealthCareSettings.username;
+            this.state.password = this.selectedHealthCareSettings.password;
             this.state.fhirServerBaseURL = this.selectedHealthCareSettings.fhirServerBaseURL;
             this.state.tokenEndpoint = this.selectedHealthCareSettings.tokenUrl;
             this.state.scopes = this.selectedHealthCareSettings.scopes;
@@ -710,7 +712,7 @@ class HealthCareSettings extends Component {
                                                     Client Id:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required onChange={e => this.handleChange(e)} value={this.state.clientId} isInvalid={this.state.isValidated && (this.state.clientId === '' || this.state.clientId === undefined)}/>
+                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={ this.state.clientId} isInvalid={this.state.isValidated && this.state.authType !== 'UserNamePwd' && (this.state.clientId === '' || this.state.clientId === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
@@ -780,7 +782,7 @@ class HealthCareSettings extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
-
+                                           
                                             
                                                 <Form.Group as={Row} controlId="formHorizontalTokenURL">
                                                     <Form.Label column sm={2}>

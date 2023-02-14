@@ -178,6 +178,7 @@ class ClientDetails extends Component {
             isProvider: this.state.launchType === "providerLaunch" ? true : false,
             isSystem: this.state.launchType === 'systemLaunch' ? true : false,
             isUserAccountLaunch: this.state.launchType === "userAccountLaunch"? true : false,
+            isMultiTenantSystemLaunch: this.state.launchType === "multiTenantSystemLaunch"? true : false,
             clientId: this.state.launchType === "userAccountLaunch"?this.state.username:this.state.clientId,
             clientSecret: this.state.clientSecret && this.state.launchType === 'systemLaunch'  ? this.state.clientSecret : this.state.password,
             fhirServerBaseURL: this.state.fhirServerBaseURL,

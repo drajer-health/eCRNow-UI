@@ -21,12 +21,20 @@ class ClientDetails extends Component {
         if (!this.addNew && !this.isEmpty(this.selectedClientDetails)) {
             if (this.selectedClientDetails.isProvider) {
                 this.state.launchType = 'providerLaunch';
+                this.state.clientId = this.selectedClientDetails.clientId;
             }
             if (this.selectedClientDetails.isSystem) {
                 this.state.launchType = 'systemLaunch';
+                this.state.clientId = this.selectedClientDetails.clientId;
+                this.state.clientSecret = this.selectedClientDetails.clientSecret;
             }
-            this.state.clientId = this.selectedClientDetails.clientId;
-            this.state.clientSecret = this.selectedClientDetails.clientSecret;
+            if (this.selectedClientDetails.isUserAccountLaunch) {
+                this.state.launchType = 'userAccountLaunch';
+                this.state.username = this.selectedClientDetails.clientId;
+                this.state.password = this.selectedClientDetails.clientSecret;
+            }
+            
+            
             this.state.fhirServerBaseURL = this.selectedClientDetails.fhirServerBaseURL;
             // this.state.tokenEndpoint = this.selectedClientDetails.tokenURL;
             this.state.scopes = this.selectedClientDetails.scopes;
@@ -43,18 +51,31 @@ class ClientDetails extends Component {
             this.state.directUserName = this.selectedClientDetails.directUser;
             this.state.directPwd = this.selectedClientDetails.directPwd;
             this.state.directRecipientAddress = this.selectedClientDetails.directRecipientAddress;
+            this.state.smtpUrl = this.selectedClientDetails.smtpUrl;
             this.state.smtpPort = this.selectedClientDetails.smtpPort;
+            this.state.imapUrl = this.selectedClientDetails.imapUrl;
             this.state.imapPort = this.selectedClientDetails.imapPort;
             this.state.restAPIURL= this.selectedClientDetails.restAPIURL;
+            this.state.rrRestAPIUrl = this.selectedClientDetails.rrRestAPIUrl;
             this.state.xdrRecipientAddress = this.selectedClientDetails.xdrRecipientAddress;
             this.state.assigningAuthorityId = this.selectedClientDetails.assigningAuthorityId;
             this.state.startThreshold = this.selectedClientDetails.encounterStartThreshold;
             this.state.endThreshold = this.selectedClientDetails.encounterEndThreshold;
+            this.state.rrDocRefMimeType = this.selectedClientDetails.rrDocRefMimeType;
             if (this.selectedClientDetails.isCovid) {
                 this.state.reportType = "covid19";
             }
             if (this.selectedClientDetails.isFullEcr) {
                 this.state.reportType = "fullecr";
+            }
+            if (this.selectedClientDetails.isCreateDocRef) {
+                this.state.rrProcessingType = "createDocRef";
+            }
+            if (this.selectedClientDetails.isInvokeRestAPI) {
+                this.state.rrProcessingType = "invokeRestAPI";
+            }
+            if (this.selectedClientDetails.isBoth) {
+                this.state.rrProcessingType = "both";
             }
             if(this.selectedClientDetails.debugFhirQueryAndEicr){
                 this.state.isChecked =true;
@@ -63,12 +84,14 @@ class ClientDetails extends Component {
             this.state.launchType = 'providerLaunch';
             this.state.directType = 'direct';
             this.state.reportType = 'covid19';
+            this.state.rrProcessingType = 'createDocRef';
         }
         this.state.isSaved = false;
         this.saveClientDetails = this.saveClientDetails.bind(this);
         this.handleRadioChange = this.handleRadioChange.bind(this);
         this.handleDirectChange = this.handleDirectChange.bind(this);
         this.handleReportChange = this.handleReportChange.bind(this);
+        this.handleRRProcessingChange = this.handleRRProcessingChange.bind(this);
         this.openClientDetailsList = this.openClientDetailsList.bind(this);
     }
 
@@ -87,6 +110,17 @@ class ClientDetails extends Component {
     }
 
     handleRadioChange(e) {
+        if(e.target.value === "userAccountLaunch"){
+            this.setState({
+                clientId:''
+            })
+        }
+        if(e.target.value === "systemLaunch" || e.target.value === "providerLaunch"){
+            this.setState({
+                username:'',
+                password:''
+            })
+        }
         this.setState({
             launchType: e.target.value
         });
@@ -101,6 +135,12 @@ class ClientDetails extends Component {
     handleReportChange(e) {
         this.setState({
             reportType: e.target.value
+        });
+    }
+
+    handleRRProcessingChange(e) {
+        this.setState({
+            rrProcessingType: e.target.value
         });
     }
 
@@ -132,14 +172,17 @@ class ClientDetails extends Component {
     saveClientDetails() {
         console.log("clicked");
         console.log(this.state.xdrRecipientAddress);
+        console.log(this.state.rrDocRefMimeType);
         var requestMethod = '';
         var clientDetails = {
             isProvider: this.state.launchType === "providerLaunch" ? true : false,
             isSystem: this.state.launchType === 'systemLaunch' ? true : false,
-            clientId: this.state.clientId,
-            clientSecret: this.state.clientSecret && this.state.launchType === 'systemLaunch' ? this.state.clientSecret : null,
+            isUserAccountLaunch: this.state.launchType === "userAccountLaunch"? true : false,
+            isMultiTenantSystemLaunch: this.state.launchType === "multiTenantSystemLaunch"? true : false,
+            clientId: this.state.launchType === "userAccountLaunch"?this.state.username:this.state.clientId,
+            clientSecret: this.state.clientSecret && this.state.launchType === 'systemLaunch'  ? this.state.clientSecret : this.state.password,
             fhirServerBaseURL: this.state.fhirServerBaseURL,
-            // tokenURL: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
+            tokenURL: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
             isDirect: this.state.directType === "direct" ? true : false,
             isXdr: this.state.directType === "xdr" ? true : false,
@@ -147,7 +190,9 @@ class ClientDetails extends Component {
             directHost: this.state.directHost && this.state.directType === "direct" ? this.state.directHost : null,
             directUser: this.state.directUserName && this.state.directType === "direct" ? this.state.directUserName : null,
             directPwd: this.state.directPwd && this.state.directType === "direct" ? this.state.directPwd : null,
+            smtpUrl: this.state.smtpUrl && this.state.directType === "direct" ? this.state.smtpUrl : null,
             smtpPort: this.state.smtpPort && this.state.directType === "direct" ? this.state.smtpPort : null,
+            imapUrl: this.state.imapUrl && this.state.directType === "direct" ? this.state.imapUrl : null,
             imapPort: this.state.imapPort && this.state.directType === "direct" ? this.state.imapPort : null,
             directRecipientAddress: this.state.directRecipientAddress && this.state.directType === "direct" ? this.state.directRecipientAddress : null,
             xdrRecipientAddress: this.state.xdrRecipientAddress && this.state.directType === "xdr" ? this.state.xdrRecipientAddress : null,
@@ -157,6 +202,11 @@ class ClientDetails extends Component {
             encounterEndThreshold: this.state.endThreshold,
             isCovid: this.state.reportType === "covid19" ? true : false,
             isFullEcr: this.state.reportType === "fullecr" ? true : false,
+            isCreateDocRef : this.state.rrProcessingType === 'createDocRef'?true:false,
+            isInvokeRestAPI : this.state.rrProcessingType === 'invokeRestAPI' ? true: false,
+            isBoth: this.state.rrProcessingType === 'both' ? true : false,
+            rrRestAPIUrl : this.state.rrRestAPIUrl,
+            rrDocRefMimeType: this.state.rrDocRefMimeType,
             debugFhirQueryAndEicr: this.state.isLoggingEnabled ? this.state.isLoggingEnabled : false,
             lastUpdated:new Date()
             // tokenIntrospectionURL: this.state.tokenIntrospectionURL ? this.state.tokenIntrospectionURL : null,
@@ -226,6 +276,7 @@ class ClientDetails extends Component {
                         startThreshold: "",
                         endThreshold: "",
                         reportType: "covid19",
+                        rrProcessingType: "createDocRef",
                         ersdFileLocation: "",
                         schematronLocation: ""
                     });
@@ -335,9 +386,17 @@ class ClientDetails extends Component {
                                                                 <Form.Check.Label>System Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="userAccountLaunch">
+                                                                <Form.Check.Input type="radio" checked={this.state.launchType === 'userAccountLaunch'} value="userAccountLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Label>Username & Password</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
+                                            {this.state.launchType === 'systemLaunch' || this.state.launchType === 'providerLaunch' ? (
+                                            
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
                                                     Client Id:
@@ -348,7 +407,20 @@ class ClientDetails extends Component {
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
                                                 </Col>
+                                            </Form.Group>):(
+                                                <Form.Group as={Row} controlId="formHorizontalClientId">
+                                                <Form.Label column sm={2}>
+                                                    Username:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Form.Control type="text" placeholder="Username" name="username" required onChange={e => this.handleChange(e)} value={this.state.username} />
+                                                    <Form.Control.Feedback type="invalid">
+                                                        Please provide a Username.
+                                                    </Form.Control.Feedback>
+                                                </Col>
                                             </Form.Group>
+                                            )}
+                                            
 
                                             {this.state.launchType === 'systemLaunch' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
@@ -359,6 +431,20 @@ class ClientDetails extends Component {
                                                         <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Client Secret.
+                                                        </Form.Control.Feedback>
+                                                    </Col>
+                                                </Form.Group>
+                                            ) : ''}
+
+                                            {this.state.launchType === 'userAccountLaunch' ? (
+                                                <Form.Group as={Row} controlId="formHorizontalClientSecret">
+                                                    <Form.Label column sm={2}>
+                                                        Password:
+                                                    </Form.Label>
+                                                    <Col sm={10}>
+                                                        <Form.Control type="password" placeholder="Password" name="password" required={this.state.launchType === 'userAccountLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
+                                                        <Form.Control.Feedback type="invalid">
+                                                            Please provide a Password.
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
@@ -388,20 +474,20 @@ class ClientDetails extends Component {
                                                 </Col>
                                             </Form.Group>
 
-                                            {/* {this.state.launchType === 'systemLaunch' ? (
+                                            {this.state.launchType === 'userAccountLaunch' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalTokenURL">
                                                     <Form.Label column sm={2}>
                                                         Token Endpoint:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
+                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
 
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a FHIR Server Token URL.
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
-                                            ) : ''} */}
+                                            ) : ''}
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>
@@ -489,6 +575,17 @@ class ClientDetails extends Component {
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
+                                                    <Form.Group as={Row} controlId="smtpUrl">
+                                                        <Form.Label column sm={2}>
+                                                            SMTP URL:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" name="smtpUrl" placeholder="SMTP URL" onChange={e => this.handleChange(e)} value={this.state.smtpUrl} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a SMTP URL.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
                                                     <Form.Group as={Row} controlId="smtpPort">
                                                         <Form.Label column sm={2}>
                                                             SMTP Port:
@@ -497,6 +594,17 @@ class ClientDetails extends Component {
                                                             <Form.Control type="text" name="smtpPort" required={this.state.directType === 'direct' ? true : false} placeholder="SMTP Port" onChange={e => this.handleChange(e)} value={this.state.smtpPort} isInvalid={this.state.isValidated && (this.state.smtpPort === '' || this.state.smtpPort === undefined)}/>
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please provide a SMTP Port.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                    <Form.Group as={Row} controlId="imapUrl">
+                                                        <Form.Label column sm={2}>
+                                                            IMAP Port:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" name="imapUrl" placeholder="IMAP URL" onChange={e => this.handleChange(e)} value={this.state.imapUrl} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a IMAP URL.
                                                             </Form.Control.Feedback>
                                                         </Col>
                                                     </Form.Group>
@@ -623,6 +731,62 @@ class ClientDetails extends Component {
                                                     </Form.Control.Feedback>
                                                 </Col>
                                             </Form.Group>
+
+                                            <Form.Group as={Row} controlId="rrProcessing">
+                                                <Form.Label column sm={2}>
+                                                    RR Processing:
+                                                </Form.Label>
+                                                <Col sm={10}>
+                                                    <Row>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="createDocRef">
+                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'createDocRef'} value="createDocRef" onChange={e => this.handleRRProcessingChange(e)} />
+                                                                <Form.Check.Label>Create Document Reference</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="invokeRestAPI">
+                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'invokeRestAPI'} value="invokeRestAPI" onChange={e => this.handleRRProcessingChange(e)} />
+                                                                <Form.Check.Label>Invoke Rest API</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={4}>
+                                                            <Form.Check type="radio" id="both">
+                                                                <Form.Check.Input type="radio" checked={this.state.rrProcessingType === 'both'} value="both" onChange={e => this.handleRRProcessingChange(e)} />
+                                                                <Form.Check.Label>Both</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                            </Form.Group>
+                                            
+                                            {this.state.rrProcessingType === 'invokeRestAPI' || this.state.rrProcessingType === 'both' ? (
+                                                <div>
+                                                    <Form.Group as={Row} controlId="rrRestAPIUrl">
+                                                        <Form.Label column sm={2}>
+                                                            RR Rest API URL:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="RR Rest API URL" required={this.state.rrProcessingType === 'invokeRestAPI' || this.state.rrProcessingType === 'both' ? true : false} name="rrRestAPIUrl" onChange={e => this.handleChange(e)} value={this.state.rrRestAPIUrl} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide a RR Rest API URL.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
+                                                </div>
+                                            ) : ''}
+
+                                            <Form.Group as={Row} controlId="rrDocRefMimeType">
+                                                        <Form.Label column sm={2}>
+                                                            RR Doc Ref Mime Type:
+                                                        </Form.Label>
+                                                        <Col sm={10}>
+                                                            <Form.Control type="text" placeholder="RR DocumentReference Mime Type" name="rrDocRefMimeType" onChange={e => this.handleChange(e)} value={this.state.rrDocRefMimeType} />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please provide DocumentReference Mime Type.
+                                                            </Form.Control.Feedback>
+                                                        </Col>
+                                                    </Form.Group>
 
                                             <Form.Group as={Row} controlId="reportType">
                                                 <Form.Label column sm={2}>

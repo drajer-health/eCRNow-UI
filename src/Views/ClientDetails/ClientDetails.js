@@ -36,7 +36,7 @@ class ClientDetails extends Component {
             
             
             this.state.fhirServerBaseURL = this.selectedClientDetails.fhirServerBaseURL;
-            // this.state.tokenEndpoint = this.selectedClientDetails.tokenURL;
+            this.state.tokenEndpoint = this.selectedClientDetails.tokenURL;
             this.state.scopes = this.selectedClientDetails.scopes;
             if (this.selectedClientDetails.isDirect) {
                 this.state.directType = 'direct';
@@ -474,7 +474,7 @@ class ClientDetails extends Component {
                                                 </Col>
                                             </Form.Group>
 
-                                            {this.state.launchType === 'userAccountLaunch' ? (
+                                            {/*this.state.launchType === 'userAccountLaunch' ? (
                                                 <Form.Group as={Row} controlId="formHorizontalTokenURL">
                                                     <Form.Label column sm={2}>
                                                         Token Endpoint:
@@ -487,7 +487,19 @@ class ClientDetails extends Component {
                                                         </Form.Control.Feedback>
                                                     </Col>
                                                 </Form.Group>
-                                            ) : ''}
+                                            ) : ''} */}
+                                            <Form.Group as={Row} controlId="formHorizontalTokenURL">
+                                                    <Form.Label column sm={2}>
+                                                        Token Endpoint:
+                                                    </Form.Label>
+                                                    <Col sm={10}>
+                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
+
+                                                        <Form.Control.Feedback type="invalid">
+                                                            Please provide a FHIR Server Token URL.
+                                                        </Form.Control.Feedback>
+                                                    </Col>
+                                                </Form.Group>
                                         </Card.Body>
                                     </Accordion.Collapse>
                                 </Card>

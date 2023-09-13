@@ -426,7 +426,7 @@ class HealthCareSettings extends Component {
     var requestMethod = "";
     var healthCareSettings = {
       authType: this.state.authType,
-      clientId: this.state.authType === "System",
+      clientId: this.state.authType === "System"?this.state.clientId : null,
       isDirect: this.state.directType === "direct" ? true : false,
       isRestAPI: this.state.directType === "restApi" ? true : false,
       fhirAPI: this.state.directType === "fhir" ? true : false,

@@ -413,7 +413,7 @@ class HealthCareSettings extends Component {
         var requestMethod = '';
         var healthCareSettings = {
             authType: this.state.authType,
-            clientId: (this.state.authType === "System" || this.state.authType==="MultiTenantSystemLaunch") && this.state.clientId ?this.state.clientId:this.state.username,
+            clientId: (this.state.authType === "System" || this.state.authType==="MultiTenantSystemLaunch"||this.state.authType === "SofBackend") && this.state.clientId ?this.state.clientId:this.state.username,
             isDirect: this.state.directType === "direct" ? true : false,
             isXdr: this.state.directType === "xdr" ? true : false,
             isRestAPI: this.state.directType === "restApi" ? true : false,

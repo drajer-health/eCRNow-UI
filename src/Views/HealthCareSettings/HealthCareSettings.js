@@ -305,8 +305,9 @@ class HealthCareSettings extends Component {
         ) {
           x["isActive"] = karsByHsIdList[i].isActive;
           x["subscriptionsEnabled"] = karsByHsIdList[i].subscriptionsEnabled;
-          x["covidOnly"] = karsByHsIdList[i].covidOnly;
-          x["outputFormat"] = karsByHsIdList[i].outputFormat;
+          x["covidOnly"] = karsByHsIdList[i].covidOnly;         
+          x["outputFormat"] = karsByHsIdList[i].outputFormat==="CDA_R30"?"CDAR31_FOR_TRIAL_IMPLEMENTATION":karsByHsIdList[i].outputFormat;
+          
         }
       });
     }
@@ -326,7 +327,7 @@ class HealthCareSettings extends Component {
     const { value } = e.target;
     rowData["outputFormat"] = value;
     rowData["isChanged"] = value !== "";
-    // this.setState({ ...this.state, isValidated: value === "" });
+    //this.setState({ ...this.state, isValidated: value === "" });
   }
 
   handleToggleButton(e) {
@@ -426,7 +427,7 @@ class HealthCareSettings extends Component {
     var requestMethod = "";
     var healthCareSettings = {
       authType: this.state.authType,
-      clientId: this.state.authType === "System"?this.state.clientId : null,
+      clientId: this.state.authType === "System"||this.state.authType === "SofBackend"?this.state.clientId : null,
       isDirect: this.state.directType === "direct" ? true : false,
       isRestAPI: this.state.directType === "restApi" ? true : false,
       fhirAPI: this.state.directType === "fhir" ? true : false,
@@ -551,7 +552,7 @@ class HealthCareSettings extends Component {
       return x.isChanged === true;
     });
     const hsKARStatus = [];
-    for (var i = 0; i < updatedRows.length; i++) {
+    for (var i = 0; i < updatedRows.length; i++) {     
       const karWithHsObj = {
         hsId: this.selectedHealthCareSettings.id,
         karId: updatedRows[i].karId,
@@ -559,9 +560,9 @@ class HealthCareSettings extends Component {
         versionUniqueKarId:updatedRows[i].karId + "|" + updatedRows[i].karVersion,
         isActive: updatedRows[i].isActive ? updatedRows[i].isActive : false,
         subscriptionsEnabled: updatedRows[i].subscriptionsEnabled? updatedRows[i].subscriptionsEnabled: false,
-        covidOnly: updatedRows[i].covidOnly ? updatedRows[i].covidOnly : false,
-        outputFormat: updatedRows[i].outputFormat,
-      };
+        covidOnly: updatedRows[i].covidOnly ? updatedRows[i].covidOnly : false,        
+        outputFormat: updatedRows[i].outputFormat        
+      };      
       hsKARStatus.push(karWithHsObj);
     }
     fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/addKARStatus/", {
@@ -1828,9 +1829,9 @@ class HealthCareSettings extends Component {
                                             Select Output Format
                                           </option>
                                           {this.state.outputFormats.map(
-                                            (option) => (
+                                            (option,index) => (
                                               <option
-                                                key={option}
+                                                key={index}
                                                 value={option}
                                               >
                                                 {option}

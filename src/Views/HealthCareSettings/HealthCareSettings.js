@@ -51,6 +51,11 @@ class HealthCareSettings extends Component {
         this.state.clientId = this.selectedHealthCareSettings.clientId;
         this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
       }
+      if (this.selectedHealthCareSettings.authType === 'UserNamePwd') {
+        this.state.authType = this.selectedHealthCareSettings.authType;
+        this.state.username = this.selectedHealthCareSettings.username;
+        this.state.password = this.selectedHealthCareSettings.password;
+      }
       if (this.selectedHealthCareSettings.isDirect) {
         this.state.directType = "direct";
       }
@@ -81,6 +86,8 @@ class HealthCareSettings extends Component {
       }
       this.state.clientId = this.selectedHealthCareSettings.clientId;
       this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
+      this.state.username = this.selectedHealthCareSettings.username;
+      this.state.password = this.selectedHealthCareSettings.password;
       this.state.fhirServerBaseURL =this.selectedHealthCareSettings.fhirServerBaseURL;
       this.state.tokenEndpoint = this.selectedHealthCareSettings.tokenUrl;
       this.state.scopes = this.selectedHealthCareSettings.scopes;
@@ -231,10 +238,17 @@ class HealthCareSettings extends Component {
 
   handleRadioChange(e) {
     console.log(e.target.value);
+    if(e.target.value === "UserNamePwd"){
+      this.setState({
+          username:''
+      })
+  }
     if (e.target.value === "SofBackend" || e.target.value === "System") {
       this.setState({
-        clientId: "",
-        clientSecret: "",
+        username:'',
+        password:'',
+        clientId: '',
+        clientSecret: '',
       });
     }
     this.setState({
@@ -427,7 +441,7 @@ class HealthCareSettings extends Component {
     var requestMethod = "";
     var healthCareSettings = {
       authType: this.state.authType,
-      clientId: this.state.authType === "System"||this.state.authType === "SofBackend"?this.state.clientId : null,
+      clientId: (this.state.authType === "System"||this.state.authType === "SofBackend")&&this.state.clientId ?this.state.clientId:this.state.username,
       isDirect: this.state.directType === "direct" ? true : false,
       isRestAPI: this.state.directType === "restApi" ? true : false,
       fhirAPI: this.state.directType === "fhir" ? true : false,
@@ -458,6 +472,8 @@ class HealthCareSettings extends Component {
       imapAuthEnabled: this.state.imapAuthEnabled,
       imapSslEnabled: this.state.imapSslEnabled,
       backendAuthKeyAlias: this.state.keystoreAlias? this.state.keystoreAlias: null,
+      username: this.state.username?this.state.username:null,
+      password:this.state.password? this.state.password: null,
       createDocRefForResponse:this.state.responseProcessingType === "createDocRef" ? true : false,
       noAction: this.state.responseProcessingType==="noAction",
       docRefMimeType:this.state.responseProcessingType === "createDocRef" &&this.state.docRefMimeType != null? this.state.docRefMimeType: null,
@@ -675,7 +691,7 @@ class HealthCareSettings extends Component {
                         </Form.Label>
                         <Col sm={10}>
                           <Row>
-                            <Col sm={5}>
+                            <Col sm={4}>
                               <Form.Check type="radio" id="systemLaunch">
                                 <Form.Check.Input
                                   type="radio"
@@ -688,7 +704,7 @@ class HealthCareSettings extends Component {
                                 </Form.Check.Label>
                               </Form.Check>
                             </Col>
-                            <Col sm={5}>
+                            <Col sm={4}>
                               <Form.Check type="radio" id="backend">
                                 <Form.Check.Input
                                   type="radio"
@@ -698,6 +714,17 @@ class HealthCareSettings extends Component {
                                   onChange={(e) => this.handleRadioChange(e)}
                                 />
                                 <Form.Check.Label>Backend</Form.Check.Label>
+                              </Form.Check>
+                            </Col>
+                            <Col sm={4}>
+                              <Form.Check type="radio" id="UserNamePwd">
+                                <Form.Check.Input 
+                                  type="radio" 
+                                  checked={this.state.authType === 'UserNamePwd'} 
+                                  value="UserNamePwd" 
+                                  onChange={e => this.handleRadioChange(e)}
+                                 />
+                                <Form.Check.Label>Username & Password</Form.Check.Label>                          
                               </Form.Check>
                             </Col>
                           </Row>
@@ -713,9 +740,10 @@ class HealthCareSettings extends Component {
                               type="text"
                               placeholder="ClientId"
                               name="clientId"
+                              required={this.state.authType !== 'UserNamePwd' ? true : false} 
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.clientId}
-                              isInvalid={this.state.isValidated &&(this.state.clientId === "" ||this.state.clientId === undefined)}
+                              isInvalid={this.state.isValidated &&this.state.authType !== 'UserNamePwd'&&(this.state.clientId === "" ||this.state.clientId === undefined)}
                             />
                             <Form.Control.Feedback type="invalid">
                               Please provide a Client Id.
@@ -723,7 +751,21 @@ class HealthCareSettings extends Component {
                           </Col>
                         </Form.Group>
                       ) : (
-                        ""
+                        <Form.Group as={Row} controlId="formHorizontalUsername">
+                        <Form.Label column sm={2}>
+                            Username:
+                        </Form.Label>
+                        <Col sm={10}>
+                            <Form.Control
+                              type="text" 
+                              placeholder="Username"
+                              name="username" 
+                              required onChange={e => this.handleChange(e)} 
+                              value={this.state.username} />
+                            <Form.Control.Feedback type="invalid">Please provide a Username. </Form.Control.Feedback>                               
+                           
+                        </Col>
+                    </Form.Group>
                       )}
                       {this.state.authType === "System" ? (
                         <Form.Group as={Row} controlId="formHorizontalClientSecret" >
@@ -745,9 +787,20 @@ class HealthCareSettings extends Component {
                             </Form.Control.Feedback>
                           </Col>
                         </Form.Group>
-                      ) : (
-                        ""
-                      )}
+                      ) : ''}
+                        {this.state.authType === 'UserNamePwd' ? (
+                          <Form.Group as={Row} controlId="formHorizontalClientSecret">
+                              <Form.Label column sm={2}>
+                                  Password:
+                              </Form.Label>
+                              <Col sm={10}>
+                                  <Form.Control type="password" placeholder="Password" name="password" required={this.state.authType === 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.password} />
+                                  <Form.Control.Feedback type="invalid">
+                                      Please provide a Password.
+                                  </Form.Control.Feedback>
+                              </Col>
+                          </Form.Group>
+                      ) : ''}                      
                       <Form.Group as={Row} controlId="formHorizontalScopes">
                         <Form.Label column sm={2}>
                           Scopes:

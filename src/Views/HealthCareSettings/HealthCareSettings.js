@@ -25,9 +25,14 @@ class HealthCareSettings extends Component {
       karsByHsIdList: [],
       isKarFhirServerURLSelected: false,
       selectedKARDetails: [],
-      outputFormats: ["CDA_R11","CDAR31_FOR_TRIAL_IMPLEMENTATION"],
+      outputFormats: ["CDA_R11","CDA_R30","FHIR"],
       hsKARStatus: [],
     };
+    this.outputFormatsList= {
+      CDA_R11:"CDA_R11",
+      CDA_R30:"CDAR31_TEST_FOR_TRIAL_IMPLEMENTATION",
+      FHIR:"FHIR_TEST_FOR_TRIAL_IMPLEMENTATION"
+    };   
     this.selectedHealthCareSettings = this.props.selectedHealthCareSettings;
     console.log(this.props.addNewHealthCare);
 
@@ -320,8 +325,7 @@ class HealthCareSettings extends Component {
           x["isActive"] = karsByHsIdList[i].isActive;
           x["subscriptionsEnabled"] = karsByHsIdList[i].subscriptionsEnabled;
           x["covidOnly"] = karsByHsIdList[i].covidOnly;         
-          x["outputFormat"] = karsByHsIdList[i].outputFormat==="CDA_R30"?"CDAR31_FOR_TRIAL_IMPLEMENTATION":karsByHsIdList[i].outputFormat;
-          
+          x["outputFormat"] = karsByHsIdList[i].outputFormat;          
         }
       });
     }
@@ -340,8 +344,7 @@ class HealthCareSettings extends Component {
     console.log(rowData);
     const { value } = e.target;
     rowData["outputFormat"] = value;
-    rowData["isChanged"] = value !== "";
-    //this.setState({ ...this.state, isValidated: value === "" });
+    rowData["isChanged"] = value !== "";   
   }
 
   handleToggleButton(e) {
@@ -450,7 +453,7 @@ class HealthCareSettings extends Component {
       tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
       scopes: this.state.scopes,
       directHost: this.state.directHost && this.state.directType === "direct" ? this.state.directHost: null,
-      directUser:this.state.directUserName && this.state.directType === "direct"? this.state.directUserName: null,
+      directUser:this.state.directUserName && this.state.directType === "direct"? this.state.directUserName: '',
       directPwd:this.state.directPwd && this.state.directType === "direct"? this.state.directPwd: null,
       smtpPort:this.state.smtpPort && this.state.directType === "direct"? this.state.smtpPort: null,
       smtpUrl:this.state.smtpUrl && this.state.directType === "direct"? this.state.smtpUrl: null,
@@ -472,8 +475,8 @@ class HealthCareSettings extends Component {
       imapAuthEnabled: this.state.imapAuthEnabled,
       imapSslEnabled: this.state.imapSslEnabled,
       backendAuthKeyAlias: this.state.keystoreAlias? this.state.keystoreAlias: null,
-      username: this.state.username?this.state.username:null,
-      password:this.state.password? this.state.password: null,
+      username: this.state.username ? this.state.username : '',
+      password:this.state.password? this.state.password: '',
       createDocRefForResponse:this.state.responseProcessingType === "createDocRef" ? true : false,
       noAction: this.state.responseProcessingType==="noAction",
       docRefMimeType:this.state.responseProcessingType === "createDocRef" &&this.state.docRefMimeType != null? this.state.docRefMimeType: null,
@@ -1887,7 +1890,7 @@ class HealthCareSettings extends Component {
                                                 key={index}
                                                 value={option}
                                               >
-                                                {option}
+                                                {this.outputFormatsList[option]}
                                               </option>
                                             )
                                           )}

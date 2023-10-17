@@ -21,6 +21,7 @@ class HealthCareSettings extends Component {
       smtpSslEnabled: "",
       imapAuthEnabled: "",
       imapSslEnabled: "",
+      debugEnabled:"",
       karFhirServerURLList: [],
       karsByHsIdList: [],
       isKarFhirServerURLSelected: false,
@@ -389,6 +390,11 @@ class HealthCareSettings extends Component {
       imapSslEnabled: e.target.value === "true",
     });
   };
+  handleDebugEnabled = (e) => {
+    this.setState({
+      debugEnabled: e.target.value === "true",
+    });
+  };
 
   handleCheckboxChange(e, rowData, columnType) {
     console.log(e.target.checked);
@@ -474,6 +480,7 @@ class HealthCareSettings extends Component {
       smtpSslEnabled: this.state.smtpSslEnabled,
       imapAuthEnabled: this.state.imapAuthEnabled,
       imapSslEnabled: this.state.imapSslEnabled,
+      debugEnabled:this.state.debugEnabled,
       backendAuthKeyAlias: this.state.keystoreAlias? this.state.keystoreAlias: null,
       username: this.state.username ? this.state.username : '',
       password:this.state.password? this.state.password: '',
@@ -1140,6 +1147,7 @@ class HealthCareSettings extends Component {
                                     />
                                     <Form.Check.Label>True</Form.Check.Label>
                                   </Form.Check>
+                                  
                                 </Col>
                                 <Col sm={4}>
                                   <Form.Check type="radio" id="smtpAuthEnabled">
@@ -1179,9 +1187,35 @@ class HealthCareSettings extends Component {
                                       onChange={this.handleSmtpSslEnabled}
                                     />
                                     <Form.Check.Label>True</Form.Check.Label>
-                                  </Form.Check>
-                                </Col>
-                                <Col sm={4}>
+                                    {this.state.smtpSslEnabled && (
+                                    <Row>                           
+                                    <Col sm={6}>
+                                    <Form.Check type="radio" >
+                                    <Form.Check.Input
+                                        type="radio"                                        
+                                        label="TLSv1.1"
+                                        name="options"
+                                        value=""
+                                      />
+                                   <Form.Check.Label>TLSv1.1</Form.Check.Label>
+                                   </Form.Check>
+                                   </Col>
+                                   <Col sm={6}>
+                                   <Form.Check type="radio">
+                                   <Form.Check.Input
+                                        type="radio"                                        
+                                        label="TLSv1.2"
+                                        name="options"                                     
+                                        value=""
+                                     />
+                                   <Form.Check.Label>TLSv1.2</Form.Check.Label>
+                                   </Form.Check> 
+                                   </Col> 
+                                   </Row>                                        
+                                )}
+                                  </Form.Check>                              
+                                  </Col>
+                                  <Col sm={4}>
                                   <Form.Check type="radio" id="smtpSslEnabled">
                                     <Form.Check.Input
                                       type="radio"
@@ -1198,7 +1232,6 @@ class HealthCareSettings extends Component {
                               </Row>
                             </Col>
                           </Form.Group>
-
                           <Form.Group
                             as={Row}
                             controlId="formHorizontalReceiveType"
@@ -1568,6 +1601,47 @@ class HealthCareSettings extends Component {
                           </Form.Control.Feedback>
                         </Col>
                       </Form.Group>
+                      <Form.Group
+                            as={Row}
+                            controlId="formHorizontalReceiveType"
+                          >
+                            <Form.Label column sm={2}>
+                              Debug Enabled:
+                            </Form.Label>
+                            <Col sm={10}>
+                              <Row>
+                                <Col sm={4}>
+                                  <Form.Check type="radio" id="debugEnabled">
+                                    <Form.Check.Input
+                                      type="radio"
+                                      id="debugEnabled"
+                                      label="True"
+                                      name="debugEnabled"
+                                      value="true"
+                                      checked={this.state.debugEnabled === true}
+                                      onChange={this.handleDebugEnabled}
+                                    />
+                                    <Form.Check.Label>True</Form.Check.Label>
+                                  </Form.Check>
+                                  
+                                </Col>
+                                <Col sm={4}>
+                                  <Form.Check type="radio" id="debugEnabled">
+                                    <Form.Check.Input
+                                      type="radio"
+                                      id="debugEnabled"
+                                      label="False"
+                                      name="debugEnabled"
+                                      value="false"
+                                      checked={this.state.debugEnabled === false}
+                                      onChange={this.handleDebugEnabled}
+                                    />
+                                    <Form.Check.Label>False</Form.Check.Label>
+                                  </Form.Check>
+                                </Col>
+                              </Row>
+                            </Col>
+                          </Form.Group>
                     </Card.Body>
                   </Accordion.Collapse>
                 </Card>

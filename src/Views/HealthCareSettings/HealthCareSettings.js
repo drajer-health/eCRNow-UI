@@ -122,6 +122,12 @@ class HealthCareSettings extends Component {
       this.state.keystoreAlias =this.selectedHealthCareSettings.backendAuthKeyAlias;
       this.state.phaUrl = this.selectedHealthCareSettings.phaUrl;
       this.state.ttpUrl = this.selectedHealthCareSettings.trustedThirdParty;
+      this.state.offhoursEnabled = this.selectedHealthCareSettings.offhoursEnabled; // "hours" lower case typo from HealthCareSettings.java:341
+      this.state.offHoursStart = this.selectedHealthCareSettings.offHoursStart;
+      this.state.offHoursStartMin = this.selectedHealthCareSettings.offHoursStartMin;
+      this.state.offHoursEnd = this.selectedHealthCareSettings.offHoursEnd;
+      this.state.offHoursEndMin = this.selectedHealthCareSettings.offHoursEndMin;
+      this.state.offHoursTimezone = this.selectedHealthCareSettings.offHoursTimezone;
 
       if (this.selectedHealthCareSettings.requireAud) {
         this.state.isAudRequired = true;
@@ -276,7 +282,14 @@ class HealthCareSettings extends Component {
     });
   }
 
-  handleSubmitReportToChange(e) {
+  handleOffHoursChange(e) {
+    console.log(e.target.value);
+    this.setState({
+      offhoursEnabled: e.target.value === "True"
+    });
+  }
+
+    handleSubmitReportToChange(e) {
     console.log(e.target.value);
     if (e.target.value === "pha") {
       this.state.ttpUrl = "";
@@ -495,6 +508,12 @@ class HealthCareSettings extends Component {
       orgId: this.state.orgId ? this.state.orgId : null,
       assigningAuthorityId: this.state.assigningAuthorityId? this.state.assigningAuthorityId: null,
       defaultProviderId: this.state.defaultProviderId? this.state.defaultProviderId: null,
+      offhoursEnabled: this.state.offhoursEnabled === true ? this.state.offhoursEnabled : false,
+      offHoursStart: this.state.offHoursStart ? this.state.offHoursStart : null,
+      offHoursStartMin: this.state.offHoursStartMin ? this.state.offHoursStartMin : null,
+      offHoursEnd: this.state.offHoursEnd ? this.state.offHoursEnd : null,
+      offHoursEndMin: this.state.offHoursEndMin ? this.state.offHoursEndMin : null,
+      offHoursTimezone: this.state.offHoursTimezone ? this.state.offHoursTimezone : null,
     };
     if (!this.addNewHealthCare && this.selectedHealthCareSettings) {
       healthCareSettings["id"] = this.selectedHealthCareSettings.id;
@@ -1043,7 +1062,7 @@ class HealthCareSettings extends Component {
                               </Form.Control.Feedback>
                             </Col>
                           </Form.Group>
-                          <Form.Group as={Row} controlId="directPwd">
+                          <Form.Group as={Row} controlId="directEndpointCertificateNameOrAlia">
                             <Form.Label column sm={2}>
                               Direct Endpoint Certificate Name or Alia:
                             </Form.Label>
@@ -1150,10 +1169,10 @@ class HealthCareSettings extends Component {
                                   
                                 </Col>
                                 <Col sm={4}>
-                                  <Form.Check type="radio" id="smtpAuthEnabled">
+                                  <Form.Check type="radio" id="smtpAuthNotEnabled">
                                     <Form.Check.Input
                                       type="radio"
-                                      id="smtpAuthEnabled"
+                                      id="smtpAuthNotEnabled"
                                       label="False"
                                       name="smtpAuthEnabled"
                                       value="false"
@@ -1190,7 +1209,7 @@ class HealthCareSettings extends Component {
                                     {this.state.smtpSslEnabled && (
                                     <Row>                           
                                     <Col sm={6}>
-                                    <Form.Check type="radio" >
+                                    <Form.Check type="radio" id="tlsv1_1" >
                                     <Form.Check.Input
                                         type="radio"                                        
                                         label="TLSv1.1"
@@ -1201,7 +1220,7 @@ class HealthCareSettings extends Component {
                                    </Form.Check>
                                    </Col>
                                    <Col sm={6}>
-                                   <Form.Check type="radio">
+                                   <Form.Check type="radio" id="tlsv1_2">
                                    <Form.Check.Input
                                         type="radio"                                        
                                         label="TLSv1.2"
@@ -1216,10 +1235,10 @@ class HealthCareSettings extends Component {
                                   </Form.Check>                              
                                   </Col>
                                   <Col sm={4}>
-                                  <Form.Check type="radio" id="smtpSslEnabled">
+                                  <Form.Check type="radio" id="smtpSslNotEnabled">
                                     <Form.Check.Input
                                       type="radio"
-                                      id="smtpSslEnabled"
+                                      id="smtpSslNotEnabled"
                                       label="False"
                                       name="smtpSslEnabled"
                                       value="false"
@@ -1333,10 +1352,10 @@ class HealthCareSettings extends Component {
                                       </Form.Check>
                                     </Col>
                                     <Col sm={4}>
-                                      <Form.Check type="radio"id="imapAuthEnabled" >
+                                      <Form.Check type="radio"id="imapAuthNotEnabled" >
                                         <Form.Check.Input
                                           type="radio"
-                                          id="imapAuthEnabled"
+                                          id="imapAuthNotEnabled"
                                           label="False"
                                           name="imapAuthEnabled"
                                           value="false"
@@ -1377,10 +1396,10 @@ class HealthCareSettings extends Component {
                                       </Form.Check>
                                     </Col>
                                     <Col sm={4}>
-                                      <Form.Check type="radio" id="imapSslEnabled">
+                                      <Form.Check type="radio" id="imapSslNotEnabled">
                                         <Form.Check.Input
                                           type="radio"
-                                          id="imapSslEnabled"
+                                          id="imapSslNotEnabled"
                                           label="False"
                                           name="imapSslEnabled"
                                           value="false"
@@ -1601,6 +1620,93 @@ class HealthCareSettings extends Component {
                           </Form.Control.Feedback>
                         </Col>
                       </Form.Group>
+
+                        <Form.Group as={Row} controlId="offhoursEnabled">
+                            <Form.Label column sm={2}>
+                                Off Hours Enabled:
+                            </Form.Label>
+                            <Col sm={10}>
+                                <Row>
+                                    <Col sm={4}>
+                                        <Form.Check type="radio" id="offhoursTrue">
+                                            <Form.Check.Input type="radio" checked={this.state.offhoursEnabled === true} value="True" onChange={e => this.handleOffHoursChange(e)} />
+                                            <Form.Check.Label>True</Form.Check.Label>
+                                        </Form.Check>
+                                    </Col>
+                                    <Col sm={4}>
+                                        <Form.Check type="radio" id="offhoursFalse">
+                                            <Form.Check.Input type="radio" checked={this.state.offhoursEnabled !== true} value="False" onChange={e => this.handleOffHoursChange(e)} />
+                                            <Form.Check.Label>False</Form.Check.Label>
+                                        </Form.Check>
+                                    </Col>
+                                </Row>
+                            </Col>
+                        </Form.Group>
+
+                        {this.state.offhoursEnabled === true ? (
+                            <div>
+
+                                <Form.Group as={Row} controlId="offHoursStart">
+                                    <Form.Label column sm={2}>
+                                        Off Hours Start Hour:
+                                    </Form.Label>
+                                    <Col sm={10}>
+                                        <Form.Control type="text" placeholder="Off Hours Start Hour" required name="offHoursStart" onChange={e => this.handleChange(e)} value={this.state.offHoursStart} isInvalid={this.state.isValidated && (this.state.offHoursStart === '' || this.state.offHoursStart === undefined)}/>
+                                        <Form.Control.Feedback type="invalid">
+                                            Please provide a valid off hours start hour.
+                                        </Form.Control.Feedback>
+                                    </Col>
+                                </Form.Group>
+
+                                <Form.Group as={Row} controlId="offHoursStartMin">
+                                    <Form.Label column sm={2}>
+                                        Off Hours Start Minute:
+                                    </Form.Label>
+                                    <Col sm={10}>
+                                        <Form.Control type="text" placeholder="Off Hours Start Minute" required name="offHoursStartMin" onChange={e => this.handleChange(e)} value={this.state.offHoursStartMin} isInvalid={this.state.isValidated && (this.state.offHoursEndMin === '' || this.state.offHoursStartMin === undefined)}/>
+                                        <Form.Control.Feedback type="invalid">
+                                            Please provide a valid off hours start minute.
+                                        </Form.Control.Feedback>
+                                    </Col>
+                                </Form.Group>
+
+                                <Form.Group as={Row} controlId="offHoursEnd">
+                                    <Form.Label column sm={2}>
+                                        Off Hours End Hour:
+                                    </Form.Label>
+                                    <Col sm={10}>
+                                        <Form.Control type="text" placeholder="Off Hours End Hour" required name="offHoursEnd" onChange={e => this.handleChange(e)} value={this.state.offHoursEnd} isInvalid={this.state.isValidated && (this.state.offHoursEnd === '' || this.state.offHoursEnd === undefined)}/>
+                                        <Form.Control.Feedback type="invalid">
+                                            Please provide a valid off hours end hour.
+                                        </Form.Control.Feedback>
+                                    </Col>
+                                </Form.Group>
+
+                                <Form.Group as={Row} controlId="offHoursEndMin">
+                                    <Form.Label column sm={2}>
+                                        Off Hours End Minute:
+                                    </Form.Label>
+                                    <Col sm={10}>
+                                        <Form.Control type="text" placeholder="Off Hours End Minute" required name="offHoursEndMin" onChange={e => this.handleChange(e)} value={this.state.offHoursEndMin} isInvalid={this.state.isValidated && (this.state.offHoursEndMin === '' || this.state.offHoursEndMin === undefined)}/>
+                                        <Form.Control.Feedback type="invalid">
+                                            Please provide a valid off hours end minute.
+                                        </Form.Control.Feedback>
+                                    </Col>
+                                </Form.Group>
+
+                                <Form.Group as={Row} controlId="offHoursTimezone">
+                                    <Form.Label column sm={2}>
+                                        Off Hours Timezone:
+                                    </Form.Label>
+                                    <Col sm={10}>
+                                        <Form.Control type="text" placeholder="Off Hours End Timezone" required name="offHoursTimezone" onChange={e => this.handleChange(e)} value={this.state.offHoursTimezone} isInvalid={this.state.isValidated && (this.state.offHoursTimezone === '' || this.state.offHoursTimezone === undefined)}/>
+                                        <Form.Control.Feedback type="invalid">
+                                            Please provide a valid off hours timezone (e.g., PST or .
+                                        </Form.Control.Feedback>
+                                    </Col>
+                                </Form.Group>
+                            </div>
+                        ) : ''}
                       <Form.Group
                             as={Row}
                             controlId="formHorizontalReceiveType"
@@ -1626,10 +1732,10 @@ class HealthCareSettings extends Component {
                                   
                                 </Col>
                                 <Col sm={4}>
-                                  <Form.Check type="radio" id="debugEnabled">
+                                  <Form.Check type="radio" id="debugNotEnabled">
                                     <Form.Check.Input
                                       type="radio"
-                                      id="debugEnabled"
+                                      id="debugNotEnabled"
                                       label="False"
                                       name="debugEnabled"
                                       value="false"
@@ -1692,7 +1798,7 @@ class HealthCareSettings extends Component {
                         </Col>
                       </Form.Group>
 
-                      <Form.Group as={Row} controlId="endThreshold">
+                      <Form.Group as={Row} controlId="orgId">
                         <Form.Label column sm={2}>
                           Organization Id:
                         </Form.Label>

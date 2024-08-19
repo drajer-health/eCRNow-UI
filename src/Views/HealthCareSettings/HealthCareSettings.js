@@ -8,6 +8,7 @@ import {
 } from "react-bootstrap";
 import "./HealthCareSettings.css";
 import { store } from "react-notifications-component";
+const numberRegex = new RegExp('^\\d+$')
 class HealthCareSettings extends Component {
   constructor(props) {
     super(props);
@@ -509,11 +510,11 @@ class HealthCareSettings extends Component {
       assigningAuthorityId: this.state.assigningAuthorityId? this.state.assigningAuthorityId: null,
       defaultProviderId: this.state.defaultProviderId? this.state.defaultProviderId: null,
       offhoursEnabled: this.state.offhoursEnabled === true ? this.state.offhoursEnabled : false,
-      offHoursStart: this.state.offHoursStart ? this.state.offHoursStart : null,
-      offHoursStartMin: this.state.offHoursStartMin ? this.state.offHoursStartMin : null,
-      offHoursEnd: this.state.offHoursEnd ? this.state.offHoursEnd : null,
-      offHoursEndMin: this.state.offHoursEndMin ? this.state.offHoursEndMin : null,
-      offHoursTimezone: this.state.offHoursTimezone ? this.state.offHoursTimezone : null,
+      offHoursStart: this.state.offHoursStart !== undefined ? this.state.offHoursStart : null,
+      offHoursStartMin: this.state.offHoursStartMin !== undefined ? this.state.offHoursStartMin : null,
+      offHoursEnd: this.state.offHoursEnd !== undefined ? this.state.offHoursEnd : null,
+      offHoursEndMin: this.state.offHoursEndMin !== undefined ? this.state.offHoursEndMin : null,
+      offHoursTimezone: this.state.offHoursTimezone !== undefined ? this.state.offHoursTimezone : null,
     };
     if (!this.addNewHealthCare && this.selectedHealthCareSettings) {
       healthCareSettings["id"] = this.selectedHealthCareSettings.id;
@@ -1651,7 +1652,7 @@ class HealthCareSettings extends Component {
                                         Off Hours Start Hour:
                                     </Form.Label>
                                     <Col sm={10}>
-                                        <Form.Control type="text" placeholder="Off Hours Start Hour" required name="offHoursStart" onChange={e => this.handleChange(e)} value={this.state.offHoursStart} isInvalid={this.state.isValidated && (this.state.offHoursStart === '' || this.state.offHoursStart === undefined)}/>
+                                        <Form.Control type="text" placeholder="Off Hours Start Hour" required pattern="\d+" name="offHoursStart" onChange={e => this.handleChange(e)} value={this.state.offHoursStart} isInvalid={this.state.isValidated && !numberRegex.test(this.state.offHoursStart)}/>
                                         <Form.Control.Feedback type="invalid">
                                             Please provide a valid off hours start hour.
                                         </Form.Control.Feedback>
@@ -1663,7 +1664,7 @@ class HealthCareSettings extends Component {
                                         Off Hours Start Minute:
                                     </Form.Label>
                                     <Col sm={10}>
-                                        <Form.Control type="text" placeholder="Off Hours Start Minute" required name="offHoursStartMin" onChange={e => this.handleChange(e)} value={this.state.offHoursStartMin} isInvalid={this.state.isValidated && (this.state.offHoursEndMin === '' || this.state.offHoursStartMin === undefined)}/>
+                                        <Form.Control type="text" placeholder="Off Hours Start Minute" required pattern="\d+" name="offHoursStartMin" onChange={e => this.handleChange(e)} value={this.state.offHoursStartMin} isInvalid={this.state.isValidated && !numberRegex.test(this.state.offHoursStartMin)}/>
                                         <Form.Control.Feedback type="invalid">
                                             Please provide a valid off hours start minute.
                                         </Form.Control.Feedback>
@@ -1675,7 +1676,7 @@ class HealthCareSettings extends Component {
                                         Off Hours End Hour:
                                     </Form.Label>
                                     <Col sm={10}>
-                                        <Form.Control type="text" placeholder="Off Hours End Hour" required name="offHoursEnd" onChange={e => this.handleChange(e)} value={this.state.offHoursEnd} isInvalid={this.state.isValidated && (this.state.offHoursEnd === '' || this.state.offHoursEnd === undefined)}/>
+                                        <Form.Control type="text" placeholder="Off Hours End Hour" required pattern="\d+" name="offHoursEnd" onChange={e => this.handleChange(e)} value={this.state.offHoursEnd} isInvalid={this.state.isValidated && !numberRegex.test(this.state.offHoursEnd)}/>
                                         <Form.Control.Feedback type="invalid">
                                             Please provide a valid off hours end hour.
                                         </Form.Control.Feedback>
@@ -1687,7 +1688,7 @@ class HealthCareSettings extends Component {
                                         Off Hours End Minute:
                                     </Form.Label>
                                     <Col sm={10}>
-                                        <Form.Control type="text" placeholder="Off Hours End Minute" required name="offHoursEndMin" onChange={e => this.handleChange(e)} value={this.state.offHoursEndMin} isInvalid={this.state.isValidated && (this.state.offHoursEndMin === '' || this.state.offHoursEndMin === undefined)}/>
+                                        <Form.Control type="text" placeholder="Off Hours End Minute" required pattern="\d+" name="offHoursEndMin" onChange={e => this.handleChange(e)} value={this.state.offHoursEndMin} isInvalid={this.state.isValidated && !numberRegex.test(this.state.offHoursEndMin)}/>
                                         <Form.Control.Feedback type="invalid">
                                             Please provide a valid off hours end minute.
                                         </Form.Control.Feedback>

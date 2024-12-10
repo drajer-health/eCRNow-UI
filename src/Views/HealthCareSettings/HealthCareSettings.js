@@ -62,6 +62,7 @@ class HealthCareSettings extends Component {
       if (this.selectedHealthCareSettings.authType === "SofBackend") {
         this.state.authType = this.selectedHealthCareSettings.authType;
         this.state.clientId = this.selectedHealthCareSettings.clientId;
+        // this.state.signingAlgorithm = this.selectedHealthCareSettings.backendAuthAlg;
       }
       if (this.selectedHealthCareSettings.authType === "System") {
         this.state.authType = this.selectedHealthCareSettings.authType;
@@ -113,6 +114,8 @@ class HealthCareSettings extends Component {
       this.state.clientSecret = this.selectedHealthCareSettings.clientSecret;
       this.state.username = this.selectedHealthCareSettings.username;
       this.state.password = this.selectedHealthCareSettings.password;
+      this.state.backendAuthAlg = this.selectedHealthCareSettings.backendAuthAlg;
+      this.state.backendAuthKid = this.selectedHealthCareSettings.backendAuthKid;
       this.state.fhirServerBaseURL =
         this.selectedHealthCareSettings.fhirServerBaseURL;
       this.state.tokenEndpoint = this.selectedHealthCareSettings.tokenUrl;
@@ -509,6 +512,8 @@ class HealthCareSettings extends Component {
       fhirServerBaseURL: this.state.fhirServerBaseURL,
       tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
       scopes: this.state.scopes,
+      backendAuthAlg:this.state.backendAuthAlg,
+      backendAuthKid:this.state.backendAuthKid,
       directHost:
         this.state.directHost && this.state.directType === "direct"
           ? this.state.directHost
@@ -688,6 +693,8 @@ class HealthCareSettings extends Component {
             fhirServerBaseURL: "",
             tokenEndpoint: "",
             scopes: "",
+            backendAuthAlg: "",
+            backendAuthKid: "",
             startThreshold: "",
             endThreshold: "",
             restApiUrl: "",
@@ -1062,7 +1069,7 @@ class HealthCareSettings extends Component {
                       {/* Bharath Here */}
 
                       {this.state.authType === "SofBackend" && (
-                        <Form.Group as={Row} controlId="formHorizontalTokenURL">
+                        <Form.Group as={Row} controlId="formHorizontalSystemUrl">
                           <Form.Label column sm={2}>
                             Signing Algorithms:
                           </Form.Label>
@@ -1071,12 +1078,12 @@ class HealthCareSettings extends Component {
                               as="select"
                               name="backendAuthAlg"
                               onChange={(e) => this.handleChange(e)}
-                              value={this.state.signingAlgorithm || ""}
+                              value={this.state.backendAuthAlg || ""}
                               required
                               isInvalid={
                                 this.state.isValidated &&
-                                (this.state.signingAlgorithm === "" ||
-                                  this.state.signingAlgorithm === undefined)
+                                (this.state.backendAuthAlg === "" ||
+                                  this.state.backendAuthAlg === undefined)
                               }
                             >
                               <option value="">Select an algorithm</option>
@@ -1092,14 +1099,17 @@ class HealthCareSettings extends Component {
                       )}
                       
                     {this.state.authType === "SofBackend" &&(
-                      <Form.Group as={Row} controlId="formHorizontalTokenURL">
+                      <Form.Group as={Row} controlId="formHorizontalTokenBackend">
                         <Form.Label column sm={2}>
                             KID:
                           </Form.Label>
                           <Col sm={10}>
                           <Form.Control type="text"
                             placeholder="KID value"
-                            name="backendAuthKid">
+                            name="backendAuthKid"
+                            value={this.state.backendAuthKid || ""}
+                            onChange={(e) => this.handleChange(e)}
+                            >                            
                           </Form.Control>
                           </Col>
 

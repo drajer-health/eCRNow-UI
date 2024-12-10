@@ -54,6 +54,9 @@ class PublicHealthAuthority extends Component {
         this.selectedPublicHealthAuthority.fhirServerBaseURL;
       this.state.tokenEndpoint = this.selectedPublicHealthAuthority.tokenUrl;
       this.state.scopes = this.selectedPublicHealthAuthority.scopes;
+      this.backendAuthAlg = this.selectedPublicHealthAuthority.backendAuthAlg;
+      this.keystoreAlias = this.selectedPublicHealthAuthority.backendAuthKeyAlias;
+      this.backendAuthKid = this.selectedPublicHealthAuthority.backendAuthKid;
       this.state.restAPIURL = this.selectedPublicHealthAuthority.restApiUrl;
     } else {
       this.state.authType = "SofProvider";
@@ -146,6 +149,9 @@ class PublicHealthAuthority extends Component {
       fhirServerBaseURL: this.state.fhirServerBaseURL,
       tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
       scopes: this.state.scopes,
+      backendAuthAlg: this.state.backendAuthAlg,
+      backendAuthKid: this.state.backendAuthKid,
+      backendAuthKeyAlias: this.state.keystoreAlias ? this.state.keystoreAlias : null,
       lastUpdated: new Date(),
     };
     if (!this.addNewHealthAuthority && this.selectedPublicHealthAuthority) {
@@ -201,6 +207,9 @@ class PublicHealthAuthority extends Component {
             fhirServerBaseURL: "",
             tokenEndpoint: "",
             scopes: "",
+            keystoreAlias: "",
+            backendAuthKid: "",
+            keystoreAlias: "",
             startThreshold: "",
             endThreshold: "",
             restAPIURL: "",
@@ -537,12 +546,12 @@ class PublicHealthAuthority extends Component {
                               as="select"
                               name="backendAuthAlg"
                               onChange={(e) => this.handleChange(e)}
-                              value={this.state.signingAlgorithm || ""}
+                              value={this.state.backendAuthAlg || ""}
                               required
                               isInvalid={
                                 this.state.isValidated &&
-                                (this.state.signingAlgorithm === "" ||
-                                  this.state.signingAlgorithm === undefined)
+                                (this.state.backendAuthAlg === "" ||
+                                  this.state.backendAuthAlg === undefined)
                               }
                             >
                               <option value="">Select an algorithm</option>
@@ -567,6 +576,8 @@ class PublicHealthAuthority extends Component {
                               type="text"
                               placeholder="KID value"
                               name="backendAuthKid"
+                              value={this.state.backendAuthKid || ""}
+                              onChange={(e) => this.handleChange(e)}
                             ></Form.Control>
                           </Col>
                         </Form.Group>

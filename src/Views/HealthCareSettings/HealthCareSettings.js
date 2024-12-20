@@ -36,7 +36,7 @@ class HealthCareSettings extends Component {
       FHIR:"FHIR_TEST_FOR_TRIAL_IMPLEMENTATION"
     };   
     this.selectedHealthCareSettings = this.props.selectedHealthCareSettings;
-    console.log(this.props.addNewHealthCare);
+    
 
     const propType = typeof this.props.addNewHealthCare;
     if (propType === "boolean") {
@@ -44,11 +44,11 @@ class HealthCareSettings extends Component {
     } else {
       this.addNewHealthCare = this.props.addNewHealthCare? this.props.addNewHealthCare.addNewHealthCare: false;
     }
-    console.log(this.addNewHealthCare);
-    console.log(this.selectedHealthCareSettings);
+    
+    
 
     if (!this.addNewHealthCare &&!this.isEmpty(this.selectedHealthCareSettings) ) {
-      console.log("Inside If");
+      
       if (this.selectedHealthCareSettings.authType === "SofBackend") {
         this.state.authType = this.selectedHealthCareSettings.authType;
         this.state.clientId = this.selectedHealthCareSettings.clientId;
@@ -151,7 +151,7 @@ class HealthCareSettings extends Component {
     this.openKAR = this.openKAR.bind(this);
   }
   getKARs() {
-    console.log("clicked");
+    
     fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/kars/", {
       method: "GET",
       headers: {
@@ -163,7 +163,7 @@ class HealthCareSettings extends Component {
           return response.json();
         } else {
           const errorMessage = response.json();
-          console.log(errorMessage);
+          
           store.addNotification({
             title: "" + response.status + "",
             message: "Error in fetching the KARs",
@@ -182,9 +182,9 @@ class HealthCareSettings extends Component {
         }
       })
       .then((result) => {
-        console.log(result);
+        
         if (result) {
-          console.log(result);
+          
           this.setState({
             karFhirServerURLList: result,
           });
@@ -193,7 +193,7 @@ class HealthCareSettings extends Component {
   }
 
   getKARSByHsId(hsId) {
-    console.log("clicked");
+    
     fetch(
       process.env.REACT_APP_ECR_BASE_URL + "/api/karStatusByHsId?hsId=" + hsId,
       {
@@ -208,7 +208,7 @@ class HealthCareSettings extends Component {
           return response.json();
         } else {
           const errorMessage = response.json();
-          console.log(errorMessage);
+          
           store.addNotification({
             title: "" + response.status + "",
             message: "Error in fetching the KARs By HsId",
@@ -228,7 +228,7 @@ class HealthCareSettings extends Component {
       })
       .then((result) => {
         if (result) {
-          console.log(result);
+          
           this.setState({
             karsByHsIdList: result,
           });
@@ -250,7 +250,7 @@ class HealthCareSettings extends Component {
   }
 
   handleRadioChange(e) {
-    console.log(e.target.value);
+    
     if(e.target.value === "UserNamePwd"){
       this.setState({
           username:''
@@ -270,28 +270,28 @@ class HealthCareSettings extends Component {
   }
 
   handleDirectChange(e) {
-    console.log(e.target.value);
+    
     this.setState({
       directType: e.target.value,
     });
   }
 
   handleReadMessageTypeChange(e) {
-    console.log(e.target.value);
+    
     this.setState({
       readMessageType: e.target.value,
     });
   }
 
   handleOffHoursChange(e) {
-    console.log(e.target.value);
+    
     this.setState({
       offhoursEnabled: e.target.value === "True"
     });
   }
 
     handleSubmitReportToChange(e) {
-    console.log(e.target.value);
+    
     if (e.target.value === "pha") {
       this.state.ttpUrl = "";
     }
@@ -316,10 +316,10 @@ class HealthCareSettings extends Component {
   }
 
   async handleKARChange(e) {
-    console.log(this.state.karsByHsIdList);
+    
     const karsByHsIdList = this.state.karsByHsIdList;
-    console.log(this.state.karFhirServerURLList);
-    console.log(e.target.value);
+    
+    
     let kARDetails = this.state.karFhirServerURLList.filter((x) => {
       return x.id == e.target.value;
     });
@@ -330,8 +330,8 @@ class HealthCareSettings extends Component {
     for (var i = 0; i < karsByHsIdList.length; i++) {
       const versionAndKarIdArr =
         karsByHsIdList[i].versionUniqueKarId.split("|");
-      console.log(versionAndKarIdArr[0]);
-      console.log(versionAndKarIdArr[1]);
+      
+      
       karInfoList.filter((x) => {
         if (
           x.karId === versionAndKarIdArr[0] &&
@@ -344,35 +344,35 @@ class HealthCareSettings extends Component {
         }
       });
     }
-    console.log(karInfoList);
+    
     await this.setState({
       karFhirServerURL: e.target.value,
       isKarFhirServerURLSelected: true,
       selectedKARDetails: karInfoList,
     });
 
-    console.log(this.state.selectedKARDetails);
+    
   }
 
   handleOutputFormatChange(e, rowData) {
-    console.log(e.target.value);
-    console.log(rowData);
+    
+    
     const { value } = e.target;
     rowData["outputFormat"] = value;
     rowData["isChanged"] = value !== "";   
   }
 
   handleToggleButton(e) {
-    console.log(e);
-    console.log(e.target.value);
+    
+    
     if (this.state.isAudRequired) {
-      console.log("inside if");
+      
       this.setState({ isAudRequired: false });
     } else {
-      console.log("inside else");
+      
       this.setState({ isAudRequired: true });
     }
-    console.log(this.state);
+    
   }
 
   handleEHRSubscriptionsToggle(e) {
@@ -411,9 +411,9 @@ class HealthCareSettings extends Component {
   };
 
   handleCheckboxChange(e, rowData, columnType) {
-    console.log(e.target.checked);
-    console.log(rowData);
-    console.log(columnType);
+    
+    
+    
     if (columnType === "Activation") {
       rowData["isActive"] = e.target.checked;
       rowData["isChanged"] = true;
@@ -426,7 +426,7 @@ class HealthCareSettings extends Component {
       rowData["covidOnly"] = e.target.checked;
       rowData["isChanged"] = true;
     }
-    console.log(rowData);
+    
     this.state.selectedKARDetails.filter((x) => {
       if (x.id === rowData.id && rowData.isChanged) {
         x = rowData;
@@ -457,10 +457,10 @@ class HealthCareSettings extends Component {
   }
 
   saveHealthCareSettings() {
-    console.log("clicked");
-    console.log(this.selectedHealthCareSettings);
-    console.log(this.state.submitReportTo);
-    console.log(this.state.phaUrl);
+    
+    
+    
+    
     var requestMethod = "";
     var healthCareSettings = {
       authType: this.state.authType,
@@ -522,8 +522,8 @@ class HealthCareSettings extends Component {
     } else {
       requestMethod = "POST";
     }
-    console.log(this.geturl());
-    console.log(healthCareSettings);
+    
+    
     fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/healthcareSettings", {
       method: requestMethod,
       headers: {
@@ -539,7 +539,7 @@ class HealthCareSettings extends Component {
           return response.json();
         } else {
           const errorMessage = response.json();
-          console.log(errorMessage);
+          
           store.addNotification({
             title: "" + response.status + "",
             message: "Error in Saving the HealthCare Settings",
@@ -558,7 +558,7 @@ class HealthCareSettings extends Component {
         }
       })
       .then((result) => {
-        console.log(result);
+        
         if (result) {
           this.setState({
             authType: "SofProvider",
@@ -592,7 +592,7 @@ class HealthCareSettings extends Component {
       });
   }
   saveKARSWithHealthCareSettings(hcs) {
-    console.log(this.state.selectedKARDetails);
+    
     const kars = this.state.selectedKARDetails;
     const updatedRows = kars.filter((x) => {
       return x.isChanged === true;
@@ -626,7 +626,7 @@ class HealthCareSettings extends Component {
           return response.json();
         } else {
           const errorMessage = response.json();
-          console.log(errorMessage);
+          
           store.addNotification({
             title: "" + response.status + "",
             message: "Error in Saving the Knowledge Artifacts Status",
@@ -645,7 +645,7 @@ class HealthCareSettings extends Component {
         }
       })
       .then((result) => {
-        console.log(result);
+        
         this.openHealthCareSettingsList();
       });
   }

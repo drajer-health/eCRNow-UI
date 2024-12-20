@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 
 ReactDOM.render(<App />, document.getElementById('root'));
 

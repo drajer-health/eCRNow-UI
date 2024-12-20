@@ -99,8 +99,8 @@ class PublicHealthAuthority extends Component {
     }
 
     handleCheckboxChange(e,rowData){
-        
-        
+        console.log(e.target.checked);
+        console.log(rowData);
     }
 
     openPublicHealthAuthorityList() {

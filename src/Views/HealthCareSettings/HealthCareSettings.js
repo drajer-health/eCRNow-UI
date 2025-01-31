@@ -1226,7 +1226,7 @@ class HealthCareSettings extends Component {
                                     <Form.Check.Input
                                         type="radio"
                                         name="directTlsVersion"
-                                        value=""
+                                        value="TLSv1.1"
                                         checked={this.state.directTlsVersion === "TLSv1.1"}
                                         onChange={this.handleTlsVersionChange}
                                       />
@@ -1238,7 +1238,7 @@ class HealthCareSettings extends Component {
                                    <Form.Check.Input
                                         type="radio"
                                         name="directTlsVersion"
-                                        value=""
+                                        value="TLSv1.2"
                                         checked={this.state.directTlsVersion === "TLSv1.2"}
                                         onChange={this.handleTlsVersionChange}
                                      />

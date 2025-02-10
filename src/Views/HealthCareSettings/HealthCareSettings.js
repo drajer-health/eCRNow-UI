@@ -19,7 +19,8 @@ class HealthCareSettings extends Component {
       isAudRequired: false,
       ehrSupportsSubscriptions: false,
       smtpAuthEnabled: "",
-      smtpSslEnabled: "",
+      smtpSslEnabled: false,
+      directTlsVersion: "",
       imapAuthEnabled: "",
       imapSslEnabled: "",
       debugEnabled:"",
@@ -101,11 +102,14 @@ class HealthCareSettings extends Component {
       this.state.directHost = this.selectedHealthCareSettings.directHost;
       this.state.directUserName = this.selectedHealthCareSettings.directUser;
       this.state.directPwd = this.selectedHealthCareSettings.directPwd;
-      this.state.directEndpointCertificateNameOrAlia =this.selectedHealthCareSettings.directEndpointCertificateNameOrAlia;
+      this.state.directEndpointCertificateNameOrAlias =this.selectedHealthCareSettings.directEndpointCertificateNameOrAlias;
       this.state.directRecipientAddress =this.selectedHealthCareSettings.directRecipientAddress;
       this.state.smtpPort = this.selectedHealthCareSettings.smtpPort;
       this.state.smtpUrl = this.selectedHealthCareSettings.smtpUrl;
       this.state.imapUrl = this.selectedHealthCareSettings.imapUrl;
+      this.state.smtpAuthEnabled = this.selectedHealthCareSettings.smtpAuthEnabled;
+      this.state.smtpSslEnabled = this.selectedHealthCareSettings.smtpSslEnabled;
+      this.state.directTlsVersion = this.selectedHealthCareSettings.directTlsVersion;
       this.state.imapPort = this.selectedHealthCareSettings.imapPort;
       this.state.pop3Url = this.selectedHealthCareSettings.popUrl;
       this.state.pop3Port = this.selectedHealthCareSettings.popPort;
@@ -388,10 +392,17 @@ class HealthCareSettings extends Component {
     });
   };
 
-  handleSmtpSslEnabled = (e) => {
-    this.setState({
-      smtpSslEnabled: e.target.value === "true",
-    });
+  handleSmtpSslEnabled = (event) => {
+    const value = event.target.value === "true"; // Convert string to boolean
+    this.setState({ smtpSslEnabled: value });
+  
+    // If False, reset TLS version
+    if (!value) {
+      this.setState({ directTlsVersion: "" });
+    }
+  };
+  handleTlsVersionChange = (event) => {
+    this.setState({ directTlsVersion: event.target.value });
   };
   handleImapAuthEnabled = (e) => {
     this.setState({
@@ -482,7 +493,7 @@ class HealthCareSettings extends Component {
       popUrl:this.state.readMessageType === "pop3" &&this.state.directType === "direct" &&this.state.pop3Url? this.state.pop3Url: null,
       popPort: this.state.readMessageType === "pop3" &&this.state.pop3Port &&this.state.directType === "direct"? this.state.pop3Port: null,
       directRecipientAddress:this.state.directRecipientAddress && this.state.directType === "direct"? this.state.directRecipientAddress: null,
-      directEndpointCertificateNameOrAlia:this.state.directEndpointCertificateNameOrAlia &&this.state.directType === "direct"? this.state.directEndpointCertificateNameOrAlia: null,
+      directEndpointCertificateNameOrAlias:this.state.directEndpointCertificateNameOrAlias &&this.state.directType === "direct"? this.state.directEndpointCertificateNameOrAlias: null,
       restApiUrl:this.state.restApiUrl && this.state.directType === "restApi"? this.state.restApiUrl: null,
       assigningAuthorityId: this.state.assigningAuthorityId? this.state.assigningAuthorityId: null,
       encounterStartThreshold: this.state.startThreshold,
@@ -492,6 +503,7 @@ class HealthCareSettings extends Component {
       ehrSupportsSubscriptions: this.state.ehrSupportsSubscriptions,
       smtpAuthEnabled: this.state.smtpAuthEnabled,
       smtpSslEnabled: this.state.smtpSslEnabled,
+      directTlsVersion: this.state.smtpSslEnabled ? this.state.directTlsVersion : null, 
       imapAuthEnabled: this.state.imapAuthEnabled,
       imapSslEnabled: this.state.imapSslEnabled,
       debugEnabled:this.state.debugEnabled,
@@ -1063,19 +1075,19 @@ class HealthCareSettings extends Component {
                               </Form.Control.Feedback>
                             </Col>
                           </Form.Group>
-                          <Form.Group as={Row} controlId="directEndpointCertificateNameOrAlia">
+                          <Form.Group as={Row} controlId="directEndpointCertificateNameOrAlias">
                             <Form.Label column sm={2}>
                               Direct Endpoint Certificate Name or Alia:
                             </Form.Label>
                             <Col sm={10}>
                               <Form.Control
                                 type="text"
-                                name="directEndpointCertificateNameOrAlia"
+                                name="directEndpointCertificateNameOrAlias"
                                 placeholder="Direct Endpoint Certificate Name or Alia"
                                 required={this.state.directType === "direct" ? true: false}
                                 onChange={(e) => this.handleChange(e)}
-                                value={this.state.directEndpointCertificateNameOrAlia}
-                                isInvalid={this.state.isValidated &&(this.state.directEndpointCertificateNameOrAlia ==="" ||this.state.directEndpointCertificateNameOrAlia ===undefined)
+                                value={this.state.directEndpointCertificateNameOrAlias}
+                                isInvalid={this.state.isValidated &&(this.state.directEndpointCertificateNameOrAlias ==="" ||this.state.directEndpointCertificateNameOrAlias ===undefined)
                                 }
                               />
                               <Form.Control.Feedback type="invalid">
@@ -1212,10 +1224,11 @@ class HealthCareSettings extends Component {
                                     <Col sm={6}>
                                     <Form.Check type="radio" id="tlsv1_1" >
                                     <Form.Check.Input
-                                        type="radio"                                        
-                                        label="TLSv1.1"
-                                        name="options"
-                                        value=""
+                                        type="radio"
+                                        name="directTlsVersion"
+                                        value="TLSv1.1"
+                                        checked={this.state.directTlsVersion === "TLSv1.1"}
+                                        onChange={this.handleTlsVersionChange}
                                       />
                                    <Form.Check.Label>TLSv1.1</Form.Check.Label>
                                    </Form.Check>
@@ -1223,10 +1236,11 @@ class HealthCareSettings extends Component {
                                    <Col sm={6}>
                                    <Form.Check type="radio" id="tlsv1_2">
                                    <Form.Check.Input
-                                        type="radio"                                        
-                                        label="TLSv1.2"
-                                        name="options"                                     
-                                        value=""
+                                        type="radio"
+                                        name="directTlsVersion"
+                                        value="TLSv1.2"
+                                        checked={this.state.directTlsVersion === "TLSv1.2"}
+                                        onChange={this.handleTlsVersionChange}
                                      />
                                    <Form.Check.Label>TLSv1.2</Form.Check.Label>
                                    </Form.Check> 

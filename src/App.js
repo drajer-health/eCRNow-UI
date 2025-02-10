@@ -62,7 +62,7 @@ class App extends Component {
   }
 
   async addNewHealthCare(_state) {
-    console.log(JSON.stringify(_state));
+    
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
       addNewHealthCare: updatedState
@@ -70,7 +70,7 @@ class App extends Component {
   }
 
   async addNewPublicHealthAuthority(_state) {
-    console.log(JSON.stringify(_state));
+    
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
       addPublicHealthAuthority: updatedState

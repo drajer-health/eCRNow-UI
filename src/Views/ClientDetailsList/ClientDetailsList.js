@@ -38,7 +38,7 @@ class ClientDetailsList extends Component {
         fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/clientDetails/", {
             method: 'GET'
         }).then(response => {
-            console.log(response);
+            
             if (response.status !== 200) {
                 store.addNotification({
                     title: '' + response.status + '',
@@ -59,7 +59,7 @@ class ClientDetailsList extends Component {
                 return response.json();
             }
         }).then(result => {
-            console.log(result);
+            
             this.setState({
                 details: result
             });
@@ -72,7 +72,7 @@ class ClientDetailsList extends Component {
     }
 
     editClient(selectedClientDetails) {
-        console.log(selectedClientDetails);
+        
         this.props.addNew({ addNew: false });
         this.props.selectedClientDetails(selectedClientDetails);
         this.props.history.push('clientDetails');

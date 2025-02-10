@@ -127,7 +127,7 @@ class ClientDetails extends Component {
     }
 
     handleDirectChange(e) {
-        console.log(e.target.value);
+        
         this.setState({
             directType: e.target.value
         });
@@ -145,14 +145,14 @@ class ClientDetails extends Component {
     }
 
     handleToggleButton(e) {
-        console.log(e);
-        console.log(e.target.value);
+        
+        
         if (this.state.isChecked) {
             this.setState({ isChecked: false, isLoggingEnabled: false });
         } else {
             this.setState({ isChecked: true, isLoggingEnabled: true });
         }
-        console.log(this.state);
+        
     }
 
     openClientDetailsList() {
@@ -170,9 +170,9 @@ class ClientDetails extends Component {
     };
 
     saveClientDetails() {
-        console.log("clicked");
-        console.log(this.state.xdrRecipientAddress);
-        console.log(this.state.rrDocRefMimeType);
+        
+        
+        
         var requestMethod = '';
         var clientDetails = {
             isProvider: this.state.launchType === "providerLaunch" ? true : false,
@@ -220,8 +220,8 @@ class ClientDetails extends Component {
         } else {
             requestMethod = 'POST';
         }
-        console.log(this.geturl());
-        console.log(JSON.stringify(clientDetails));
+        
+        
         // var serviceURL = this.geturl();
         fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/clientDetails", {
             method: requestMethod,
@@ -238,7 +238,7 @@ class ClientDetails extends Component {
                     return response.json();
                 } else {
                     const errorMessage = response.json();
-                    console.log(errorMessage);
+                    
                     store.addNotification({
                         title: '' + response.status + '',
                         message: 'Error in Saving the Client Details',
@@ -257,7 +257,7 @@ class ClientDetails extends Component {
                 }
             })
             .then(result => {
-                console.log(result);
+                
                 if (result) {
                     this.setState({
                         launchType: "providerLaunch",

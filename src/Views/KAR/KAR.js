@@ -35,8 +35,8 @@ class KAR extends Component {
 }
 
     getKARs() {
-        console.log("clicked");
-        console.log(this.state.fhirServerURL);
+        
+        
         fetch(this.state.fhirServerURL + "/PlanDefinition/", {
             method: 'GET',
             headers: {
@@ -48,7 +48,7 @@ class KAR extends Component {
                     return response.json();
                 } else {
                     const errorMessage = response.json();
-                    console.log(errorMessage);
+                    
                     store.addNotification({
                         title: '' + response.status + '',
                         message: 'Error in fetching the PlanDefinitions',
@@ -67,9 +67,9 @@ class KAR extends Component {
                 }
             })
             .then(result => {
-                console.log(result);
+                
                 if (result) {
-                    console.log(result);
+                    
                     this.setState({
                       karRetrieved:true
                     })
@@ -121,7 +121,7 @@ class KAR extends Component {
                 return response.json();
             } else {
                 const errorMessage = response.json();
-                console.log(errorMessage);
+                
                 store.addNotification({
                     title: '' + response.status + '',
                     message: 'Error in Saving the Knowledge Artifact Repositories',
@@ -140,7 +140,7 @@ class KAR extends Component {
             }
         })
         .then(result => {
-            console.log(result);
+            
             if (result) {
                 this.setState({
                     fhirServerURL: "",

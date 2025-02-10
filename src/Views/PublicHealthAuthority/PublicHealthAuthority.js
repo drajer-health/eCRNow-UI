@@ -19,7 +19,7 @@ class PublicHealthAuthority extends Component {
             isChecked: false,
         };
         this.selectedPublicHealthAuthority = this.props.selectedPublicHealthAuthority;
-        console.log(this.props.addNewHealthAuthority);
+        
         const propType = typeof this.props.addNewHealthAuthority;
         if(propType === "boolean"){
             this.addNewHealthAuthority = this.props.addNewHealthAuthority ? this.props.addNewHealthAuthority : false;
@@ -27,10 +27,10 @@ class PublicHealthAuthority extends Component {
             this.addNewHealthAuthority = this.props.addNewHealthAuthority ? this.props.addNewHealthAuthority.addNewHealthAuthority : false;
         }
         
-        console.log(this.addNewHealthAuthority);
-        console.log(this.selectedPublicHealthAuthority);
+        
+        
         if (!this.addNewHealthAuthority && !this.isEmpty(this.selectedPublicHealthAuthority)) {
-          console.log("Inside If")
+          
             this.state.authType = this.selectedPublicHealthAuthority.authType;
             this.state.clientId = this.selectedPublicHealthAuthority.clientId;
             this.state.clientSecret = this.selectedPublicHealthAuthority.clientSecret;
@@ -75,7 +75,7 @@ class PublicHealthAuthority extends Component {
     }
 
     handleDirectChange(e) {
-        console.log(e.target.value);
+        
         this.setState({
             directType: e.target.value
         });
@@ -88,14 +88,14 @@ class PublicHealthAuthority extends Component {
 
 
     handleToggleButton(e) {
-        console.log(e);
-        console.log(e.target.value);
+        
+        
         if (this.state.isChecked) {
             this.setState({ isChecked: false, isLoggingEnabled: false });
         } else {
             this.setState({ isChecked: true, isLoggingEnabled: true });
         }
-        console.log(this.state);
+        
     }
 
     handleCheckboxChange(e,rowData){
@@ -118,7 +118,7 @@ class PublicHealthAuthority extends Component {
     };
 
     savePublicHealthAuthority() {
-        console.log("save pha");
+        
         var requestMethod = '';
         var PublicHealthAuthority = {
             authType: this.state.authType,
@@ -137,8 +137,8 @@ class PublicHealthAuthority extends Component {
         } else {
             requestMethod = 'POST';
         }
-        console.log(this.geturl());
-        console.log(JSON.stringify(PublicHealthAuthority));
+        
+        
         fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/publicHealthAuthority", {
             method: requestMethod,
             headers: {
@@ -154,7 +154,7 @@ class PublicHealthAuthority extends Component {
                     return response.json();
                 } else {
                     const errorMessage = response.json();
-                    console.log(errorMessage);
+                    
                     store.addNotification({
                         title: '' + response.status + '',
                         message: 'Error in Saving the HealthAuthority Settings',
@@ -173,7 +173,7 @@ class PublicHealthAuthority extends Component {
                 }
             })
             .then(result => {
-                console.log(result);
+                
                 if (result) {
                     this.setState({
                         authType: "SofProvider",

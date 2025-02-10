@@ -47,7 +47,7 @@ class HealthCareSettingsList extends Component {
       method: "GET",
     })
       .then((response) => {
-        console.log(response);
+        
         if (response.status !== 200) {
           store.addNotification({
             title: "" + response.status + "",
@@ -69,7 +69,7 @@ class HealthCareSettingsList extends Component {
         }
       })
       .then((result) => {
-        console.log(result);
+        
         this.setState({
           details: result,
         });
@@ -82,7 +82,7 @@ class HealthCareSettingsList extends Component {
   }
 
   editHealthCareSettings(selectedHealthCareSettings) {
-    console.log(selectedHealthCareSettings);
+    
     this.props.addNewHealthCare({ addNewHealthCare: false });
     this.props.selectedHealthCareSettings(selectedHealthCareSettings);
     this.props.history.push("healthCareSettings");

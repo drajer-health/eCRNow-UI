@@ -38,7 +38,7 @@ class PublicHealthAuthorityList extends Component {
         fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/publicHealthAuthority/", {
             method: 'GET'
         }).then(response => {
-            console.log(response);
+            
             if (response.status !== 200) {
                 store.addNotification({
                     title: '' + response.status + '',
@@ -59,7 +59,7 @@ class PublicHealthAuthorityList extends Component {
                 return response.json();
             }
         }).then(result => {
-            console.log(result);
+            
             this.setState({
                 details: result
             });
@@ -73,7 +73,7 @@ class PublicHealthAuthorityList extends Component {
     }
 
     editPublicHealthAuthority(selectedPHA) {
-        console.log(selectedPHA);
+        
         this.props.addNewPublicHealthAuthority({ addNewPublicHealthAuthority: false });
         this.props.selectedPublicHealthAuthority(selectedPHA);
         this.props.history.push('publicHealthAuthority');

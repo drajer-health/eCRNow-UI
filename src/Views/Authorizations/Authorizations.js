@@ -59,7 +59,7 @@ class Authorizations extends Component {
           });
         }
       }).then(result => {
-        console.log(result);
+        
         this.clientDetails = result;
         this.authorizeWithServer();
       });
@@ -152,13 +152,13 @@ class Authorizations extends Component {
     ];
     var query = queryParams.join('&');
     var url = path + query;
-    console.log(url);
+    
     window.location.replace(url);
   }
 
   getAuthorizeToken(code, state) {
     var params = JSON.parse(sessionStorage[state]);
-    console.log(params.clientDetails);
+    
     this.clientDetails = params.clientDetails;
     const tokenParams = {
       grant_type: 'authorization_code',
@@ -184,7 +184,7 @@ class Authorizations extends Component {
         return response.json();
       })
       .then(body => {
-        console.log(body);
+        
         this.setState({
           isAuthorized: true,
           access_token: body.access_token,
@@ -197,7 +197,7 @@ class Authorizations extends Component {
           userId: body.user,
           fhirVersion: params.fhirVersion
         });
-        console.log(this.clientDetails);
+        
         if (body.encounter) {
           this.setState({
             encounterId: body.encounter
@@ -211,7 +211,7 @@ class Authorizations extends Component {
           });
           this.submitClientDetails();
         }
-        console.log(this.state);
+        
         this.getResourcesData();
         // setTimeout(() => {
 
@@ -220,7 +220,7 @@ class Authorizations extends Component {
   }
 
   submitClientDetails() {
-    console.log(this.state);
+    
     const clientInfo = {
       clientId: this.clientDetails.clientId,
       ehrServerURL: this.state.baseURL,
@@ -245,7 +245,7 @@ class Authorizations extends Component {
       directRecipient: this.clientDetails.directRecipientAddress,
       isCovid: this.clientDetails.isCovid
     };
-    console.log(clientInfo);
+    
 
     fetch(this.geturl() + "/api/launchDetails", {
       method: 'POST',
@@ -275,13 +275,13 @@ class Authorizations extends Component {
         }
       })
       .then(body => {
-        console.log(body);
+        
       });
   }
 
   getResourcesData() {
     const patientData = this.getPatientData();
-    console.log(patientData);
+    
   }
   getPatientData() {
     fetch(
@@ -316,7 +316,7 @@ class Authorizations extends Component {
 
       })
       .then(result => {
-        console.log("Received Patient Data==============>" + JSON.stringify(result));
+        
       });
   }
 
@@ -390,7 +390,7 @@ class Authorizations extends Component {
     const hours = startDate.getHours() < 10 ? "0" + startDate.getHours() : startDate.getHours();
     const minutes = startDate.getMinutes() < 10 ? "0" + startDate.getMinutes() : startDate.getMinutes();
     const seconds = startDate.getSeconds() < 10 ? "0" + startDate.getSeconds() : startDate.getSeconds();
-    console.log(year + "-" + month + "-" + date + "T" + hours + ":" + minutes + ":" + seconds + ".000Z");
+    
     return year + "-" + month + "-" + date + "T" + hours + ":" + minutes + ":" + seconds + ".000Z";
   }
 
@@ -404,7 +404,7 @@ class Authorizations extends Component {
     const hours = endDate.getHours() < 10 ? "0" + endDate.getHours() : endDate.getHours();
     const minutes = endDate.getMinutes() < 10 ? "0" + endDate.getMinutes() : endDate.getMinutes();
     const seconds = endDate.getSeconds() < 10 ? "0" + endDate.getSeconds() : endDate.getSeconds();
-    console.log(year + "-" + month + "-" + date + "T" + hours + ":" + minutes + ":" + seconds + ".000Z");
+    
     return year + "-" + month + "-" + date + "T" + hours + ":" + minutes + ":" + seconds + ".000Z";
   }
 

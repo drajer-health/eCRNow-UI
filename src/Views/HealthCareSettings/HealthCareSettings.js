@@ -131,9 +131,6 @@ class HealthCareSettings extends Component {
       this.state.directTlsVersion =
         this.selectedHealthCareSettings.directTlsVersion;
       this.state.imapUrl = this.selectedHealthCareSettings.imapUrl;
-      this.state.smtpAuthEnabled = this.selectedHealthCareSettings.smtpAuthEnabled;
-      this.state.smtpSslEnabled = this.selectedHealthCareSettings.smtpSslEnabled;
-      this.state.directTlsVersion = this.selectedHealthCareSettings.directTlsVersion;
       this.state.imapPort = this.selectedHealthCareSettings.imapPort;
       this.state.pop3Url = this.selectedHealthCareSettings.popUrl;
       this.state.pop3Port = this.selectedHealthCareSettings.popPort;
@@ -266,11 +263,10 @@ class HealthCareSettings extends Component {
     return true;
   }
 
-  handleChange(e) {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
-  }
+  handleChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({ [name]: value.trimStart() }); // Prevent leading spaces
+  };
 
   handleRadioChange(e) {
     if (e.target.value === "UserNamePwd") {
@@ -334,19 +330,22 @@ class HealthCareSettings extends Component {
 
   async handleKARChange(e) {
     const karsByHsIdList = this.state.karsByHsIdList;
+    const selectedId = e.target.value;
+    let kARDetails = this.state.karFhirServerURLList.filter(
+      (x) => x.id == selectedId
+    );
+    if (kARDetails.length === 0) {
+      return;
+    }
 
-    let kARDetails = this.state.karFhirServerURLList.filter((x) => {
-      return x.id == e.target.value;
-    });
-    const karInfoList = kARDetails[0].karsInfo;
-    karInfoList.sort(function (a, b) {
-      return b.id - a.id;
-    });
-    for (var i = 0; i < karsByHsIdList.length; i++) {
+    const karInfoList = kARDetails[0]?.karsInfo || []; // Use optional chaining and default empty array
+    karInfoList.sort((a, b) => b.id - a.id);
+
+    for (let i = 0; i < karsByHsIdList.length; i++) {
       const versionAndKarIdArr =
         karsByHsIdList[i].versionUniqueKarId.split("|");
 
-      karInfoList.filter((x) => {
+      karInfoList.forEach((x) => {
         if (
           x.karId === versionAndKarIdArr[0] &&
           x.karVersion === versionAndKarIdArr[1]
@@ -360,7 +359,7 @@ class HealthCareSettings extends Component {
     }
 
     await this.setState({
-      karFhirServerURL: e.target.value,
+      karFhirServerURL: selectedId,
       isKarFhirServerURLSelected: true,
       selectedKARDetails: karInfoList,
     });
@@ -889,6 +888,11 @@ class HealthCareSettings extends Component {
                               required
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.username || ""}
+                              isInvalid={
+                                this.state.isValidated &&
+                                (this.state.username === "" ||
+                                  this.state.username === undefined)
+                              }
                             />
                             <Form.Control.Feedback type="invalid">
                               Please provide a Username.{" "}
@@ -950,6 +954,11 @@ class HealthCareSettings extends Component {
                               }
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.password || ""}
+                              isInvalid={
+                                this.state.isValidated &&
+                                (this.state.password === "" ||
+                                  this.state.password === undefined)
+                              }
                             />
                             <Form.Control.Feedback type="invalid">
                               Please provide a Password.
@@ -2466,6 +2475,7 @@ class HealthCareSettings extends Component {
                               defaultValue="Select FHIR Server URL"
                               onChange={(e) => this.handleKARChange(e)}
                               required={true}
+                              className="select-drop-down"
                             >
                               <option>Select FHIR Server URL</option>
                               {this.state.karFhirServerURLList.map((option) => (

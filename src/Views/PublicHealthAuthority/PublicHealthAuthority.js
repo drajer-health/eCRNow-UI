@@ -6,9 +6,10 @@ import {
     Form, Card, Accordion, Button,Table
 } from 'react-bootstrap';
 import './PublicHealthAuthority.css';
-import { store } from 'react-notifications-component';
-import TextField from '@material-ui/core/TextField/TextField';
-import MenuItem from '@material-ui/core/MenuItem';
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { withRouter } from '../../withRouter';
 
 class PublicHealthAuthority extends Component {
     constructor(props) {
@@ -103,8 +104,11 @@ class PublicHealthAuthority extends Component {
         console.log(rowData);
     }
 
+    // openPublicHealthAuthorityList() {
+    //     this.props.history.push('PublicHealthAuthorityList');
+    // }
     openPublicHealthAuthorityList() {
-        this.props.history.push('PublicHealthAuthorityList');
+        this.props.navigate('/PublicHealthAuthorityList');
     }
 
     geturl() {
@@ -116,9 +120,7 @@ class PublicHealthAuthority extends Component {
         strurl = protocol + "//" + host + context;
         return strurl;
     };
-
     savePublicHealthAuthority() {
-        
         var requestMethod = '';
         var PublicHealthAuthority = {
             authType: this.state.authType,
@@ -129,16 +131,16 @@ class PublicHealthAuthority extends Component {
             fhirServerBaseURL: this.state.fhirServerBaseURL,
             tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
-            lastUpdated:new Date()
+            lastUpdated: new Date()
         };
+        
         if (!this.addNewHealthAuthority && this.selectedPublicHealthAuthority) {
-          PublicHealthAuthority['id'] = this.selectedPublicHealthAuthority.id;
+            PublicHealthAuthority['id'] = this.selectedPublicHealthAuthority.id;
             requestMethod = 'PUT';
         } else {
             requestMethod = 'POST';
         }
-        
-        
+    
         fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/publicHealthAuthority", {
             method: requestMethod,
             headers: {
@@ -146,96 +148,83 @@ class PublicHealthAuthority extends Component {
             },
             body: JSON.stringify(PublicHealthAuthority)
         })
-            .then(response => {
-                if (response.status === 200) {
-                    this.setState({
-                        isSaved: true
-                    });
-                    return response.json();
-                } else {
-                    const errorMessage = response.json();
-                    
-                    store.addNotification({
-                        title: '' + response.status + '',
-                        message: 'Error in Saving the HealthAuthority Settings',
-                        type: 'danger',
-                        insert: 'bottom',
-                        container: 'bottom-right',
-                        animationIn: ['animated', 'fadeIn'],
-                        animationOut: ['animated', 'fadeOut'],
-                        dismiss: {
-                            duration: 5000,
-                            click: true,
-                            onScreen: true
-                        }
-                    });
-                    return;
-                }
-            })
-            .then(result => {
+        .then(response => {
+            if (response.status === 200) {
+                this.setState({
+                    isSaved: true
+                });
+                return response.json();
+            } else {
+                const errorMessage = response.json();
                 
-                if (result) {
-                    this.setState({
-                        authType: "SofProvider",
-                        clientId: "",
-                        clientSecret: "",
-                        username: "",
-                        password: "",
-                        fhirServerBaseURL: "",
-                        tokenEndpoint: "",
-                        scopes: "",
-                        startThreshold: "",
-                        endThreshold: "",
-                        restAPIURL: ""
-                    });
-                    store.addNotification({
-                        title: 'Success',
-                        message: 'Client Details are saved successfully.',
-                        type: 'success',
-                        insert: 'bottom',
-                        container: 'bottom-right',
-                        animationIn: ['animated', 'fadeIn'],
-                        animationOut: ['animated', 'fadeOut'],
-                        dismiss: {
-                            duration: 5000,
-                            click: true,
-                            onScreen: true
-                        }
-                    });
-
-                    this.openPublicHealthAuthorityList();
-                }
-
-            });
+                toast.error('Error in Saving the HealthAuthority Settings', {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    draggable: true,
+                    progress: undefined,
+                });
+                return;
+            }
+        })
+        .then(result => {
+            if (result) {
+                this.setState({
+                    authType: "SofProvider",
+                    clientId: "",
+                    clientSecret: "",
+                    username: "",
+                    password: "",
+                    fhirServerBaseURL: "",
+                    tokenEndpoint: "",
+                    scopes: "",
+                    startThreshold: "",
+                    endThreshold: "",
+                    restAPIURL: ""
+                });
+    
+                toast.success('Client Details are saved successfully.', {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "colored"
+                });
+    
+                this.openPublicHealthAuthorityList();
+            }
+        });
     }
 
     render() {
         const setShow = () => this.setState({ isSaved: false });
-
         const handleSubmit = (event) => {
             const form = event.currentTarget;
+            
             if (form.checkValidity() === false) {
                 this.setState({
                     isValidated: true
                 });
                 event.preventDefault();
                 event.stopPropagation();
-                store.addNotification({
-                    title: 'Warning',
-                    message: 'Please enter all the required fields.',
-                    type: 'warning',
-                    insert: 'bottom',
-                    container: 'bottom-right',
-                    animationIn: ['animated', 'fadeIn'],
-                    animationOut: ['animated', 'fadeOut'],
-                    dismiss: {
-                        duration: 5000,
-                        click: true,
-                        onScreen: true
-                    }
+        
+                // Replace store notification with react-toastify
+                toast.warning('Please enter all the required fields.', {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "colored",
                 });
+                
                 return;
             }
+            
             if (form.checkValidity() === true) {
                 this.savePublicHealthAuthority();
                 this.setState({
@@ -244,7 +233,6 @@ class PublicHealthAuthority extends Component {
                 event.preventDefault();
                 event.stopPropagation();
             }
-
         };
         return (
             <div className="PublicHealthAuthority">
@@ -295,8 +283,7 @@ class PublicHealthAuthority extends Component {
                                                             </Form.Check>
                                                         </Col>
                                                         <Col sm={4}>
-                                                            <Form.Check type="radio" id="systemLaunch">
-                                                                <Form.Check.Input type="radio" checked={this.state.authType === 'UserNamePwd'} value="UserNamePwd" onChange={e => this.handleRadioChange(e)} />
+                                                            <Form.Check type="radio" id="systemLaunchs">                                                               <Form.Check.Input type="radio" checked={this.state.authType === 'UserNamePwd'} value="UserNamePwd" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>Username and Password</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
@@ -308,7 +295,7 @@ class PublicHealthAuthority extends Component {
                                                     Client Id:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientId} isInvalid={this.state.isValidated && (this.state.clientId === '' || this.state.clientId === undefined)}/>
+                                                    <Form.Control type="text" placeholder="ClientId" name="clientId" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientId || ''} isInvalid={this.state.isValidated && (this.state.clientId === '' || this.state.clientId === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Client Id.
                                                     </Form.Control.Feedback>
@@ -321,7 +308,7 @@ class PublicHealthAuthority extends Component {
                                                         Client Secret:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
+                                                        <Form.Control type="text" placeholder="Client Secret" name="clientSecret" required={this.state.authType !== 'UserNamePwd' ? true : false} onChange={e => this.handleChange(e)} value={this.state.clientSecret || ''} isInvalid={this.state.isValidated && (this.state.clientSecret === '' || this.state.clientSecret === undefined)}/>
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a Client Secret.
                                                         </Form.Control.Feedback>
@@ -335,7 +322,7 @@ class PublicHealthAuthority extends Component {
                                                     Username:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="Username" name="username" required onChange={e => this.handleChange(e)} value={this.state.username} />
+                                                    <Form.Control type="text" placeholder="Username" name="username" required onChange={e => this.handleChange(e)} value={this.state.username || ''} />
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Username.
                                                     </Form.Control.Feedback>
@@ -348,7 +335,7 @@ class PublicHealthAuthority extends Component {
                                                     Password:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="password" placeholder="Password" name="password" required onChange={e => this.handleChange(e)} value={this.state.password} />
+                                                    <Form.Control type="password" placeholder="Password" name="password" required onChange={e => this.handleChange(e)} value={this.state.password || ''} />
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a Password.
                                                     </Form.Control.Feedback>
@@ -360,7 +347,7 @@ class PublicHealthAuthority extends Component {
                                                     Scopes:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control as="textarea" rows="3" name="scopes" onChange={e => this.handleChange(e)} required value={this.state.scopes} isInvalid={this.state.isValidated && (this.state.scopes === '' || this.state.scopes === undefined)}/>
+                                                    <Form.Control as="textarea" rows="3" name="scopes" onChange={e => this.handleChange(e)} required value={this.state.scopes || ''} isInvalid={this.state.isValidated && (this.state.scopes === '' || this.state.scopes === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide Scopes.
                                                     </Form.Control.Feedback>
@@ -372,7 +359,7 @@ class PublicHealthAuthority extends Component {
                                                     FHIR Server Base URL:
                                                 </Form.Label>
                                                 <Col sm={10}>
-                                                    <Form.Control type="text" placeholder="FHIR Server Base URL" name="fhirServerBaseURL" required onChange={e => this.handleChange(e)} value={this.state.fhirServerBaseURL} isInvalid={this.state.isValidated && (this.state.fhirServerBaseURL === '' || this.state.fhirServerBaseURL === undefined)}/>
+                                                    <Form.Control type="text" placeholder="FHIR Server Base URL" name="fhirServerBaseURL" required onChange={e => this.handleChange(e)} value={this.state.fhirServerBaseURL || ''} isInvalid={this.state.isValidated && (this.state.fhirServerBaseURL === '' || this.state.fhirServerBaseURL === undefined)}/>
                                                     <Form.Control.Feedback type="invalid">
                                                         Please provide a FHIR Server Base URL.
                                                     </Form.Control.Feedback>
@@ -384,7 +371,7 @@ class PublicHealthAuthority extends Component {
                                                         Token Endpoint:
                                                     </Form.Label>
                                                     <Col sm={10}>
-                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint} />
+                                                        <Form.Control type="text" placeholder="Token Endpoint" name="tokenEndpoint" required={this.state.launchType === 'systemLaunch' ? true : false} onChange={e => this.handleChange(e)} value={this.state.tokenEndpoint || ''} />
 
                                                         <Form.Control.Feedback type="invalid">
                                                             Please provide a FHIR Server Token URL.
@@ -409,4 +396,4 @@ class PublicHealthAuthority extends Component {
     }
 }
 
-export default PublicHealthAuthority;
+export default withRouter(PublicHealthAuthority);

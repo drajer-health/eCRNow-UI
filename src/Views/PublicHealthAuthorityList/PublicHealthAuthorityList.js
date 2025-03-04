@@ -9,12 +9,9 @@ import {
 } from "react-bootstrap";
 import "./PublicHealthAuthorityList.css";
 import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import EditIcon from "@mui/icons-material/Edit";
 import { withRouter } from "../../withRouter";
-
-const tooltip = <Tooltip id="tooltip">Edit</Tooltip>;
+import axiosInstance from "../../Services/AxiosConfig";
 
 class PublicHealthAuthorityList extends Component {
   constructor(props) {
@@ -45,37 +42,47 @@ class PublicHealthAuthorityList extends Component {
   }
 
   getAllPublicHealthAuthorities() {
-      // const serviceURL = this.geturl();
-      fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/publicHealthAuthority/", {
-          method: 'GET'
-      }).then(response => {
-
-          if (response.status !== 200) {
-            toast.error("Error in getting the PublicHealthAuthorities", {
-                position: "bottom-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-              });
-              return;
-          } else {
-              return response.json();
-          }
-      }).then(result => {
-
-          this.setState({
-              details: result
+    axiosInstance
+      .get("/api/publicHealthAuthority/")
+      .then((response) => {
+        if (response.status !== 200) {
+          toast.error("Error in getting the PublicHealthAuthorities", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
           });
+          return;
+        } else {
+          return response.data;
+        }
+      })
+      .then((result) => {
+        if (result) {
+          this.setState({ details: result });
+        }
+      })
+      .catch((error) => {
+        console.error("Error in getting the PublicHealthAuthorities:", error);
+        toast.error("Error in getting the PublicHealthAuthorities", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
       });
   }
+  
 
   openAddNewPublicHealthAuthority() {
     this.props.addNewPublicHealthAuthority({ addNewHealthCare: true });
     this.props.selectedPublicHealthAuthority({});
-    // this.props.history.push('publicHealthAuthority');
     this.props.navigate("/publicHealthAuthority");
   }
 
@@ -84,7 +91,6 @@ class PublicHealthAuthorityList extends Component {
       addNewPublicHealthAuthority: false,
     });
     this.props.selectedPublicHealthAuthority(selectedPHA);
-    // this.props.history.push('publicHealthAuthority');
     this.props.navigate("/publicHealthAuthority");
   }
 

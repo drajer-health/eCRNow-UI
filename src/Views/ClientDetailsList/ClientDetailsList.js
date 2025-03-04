@@ -11,9 +11,6 @@ import "./ClientDetailsList.css";
 import EditIcon from "@mui/icons-material/Edit";
 import { toast } from "react-toastify";
 import { withRouter } from "../../withRouter";
-
-const tooltip = <Tooltip id="tooltip">Edit</Tooltip>;
-
 class ClientDetailsList extends Component {
   constructor(props) {
     super(props);

@@ -5,10 +5,8 @@ import {
   Col,
   Form,
   Card,
-  Accordion,
   Button,
   Table,
-  OverlayTrigger,
 } from "react-bootstrap";
 import "./KAR.css";
 import { toast } from "react-toastify";
@@ -152,7 +150,7 @@ class KAR extends Component {
 
   render() {
     const setShow = () => this.setState({ isSaved: false });
-
+// eslint-disable-next-line 
     const handleSubmit = (event) => {
       const form = event.currentTarget;
       if (form.checkValidity() === false) {
@@ -234,8 +232,8 @@ class KAR extends Component {
                       <Button
                         type="button"
                         disabled={
-                          this.state.repoName == undefined &&
-                          this.state.fhirServerURL == undefined
+                          this.state.repoName === undefined &&
+                          this.state.fhirServerURL === undefined
                         }
                         onClick={this.getKARs}
                       >
@@ -284,17 +282,6 @@ class KAR extends Component {
                 </Col>
               </Row>
             </Form>
-            {/* <Row>
-                            <Col className="text-center">
-                                <button
-                                    className="btn btn-primary submitBtn"
-                                    type="button"
-                                    onClick={e => this.saveClientDetails(e)}
-                                >
-                                    Save
-                                </button>
-                            </Col>
-                        </Row> */}
           </Col>
         </Row>
       </div>

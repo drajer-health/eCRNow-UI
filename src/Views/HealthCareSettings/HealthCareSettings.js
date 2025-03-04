@@ -12,6 +12,7 @@ import {
 import "./HealthCareSettings.css";
 import { toast } from "react-toastify";
 import { withRouter } from "../../withRouter";
+import axiosInstance from "../../Services/AxiosConfig";
 const numberRegex = new RegExp("^\\d+$");
 class HealthCareSettings extends Component {
   constructor(props) {
@@ -131,9 +132,6 @@ class HealthCareSettings extends Component {
       this.state.directTlsVersion =
         this.selectedHealthCareSettings.directTlsVersion;
       this.state.imapUrl = this.selectedHealthCareSettings.imapUrl;
-      this.state.smtpAuthEnabled = this.selectedHealthCareSettings.smtpAuthEnabled;
-      this.state.smtpSslEnabled = this.selectedHealthCareSettings.smtpSslEnabled;
-      this.state.directTlsVersion = this.selectedHealthCareSettings.directTlsVersion;
       this.state.imapPort = this.selectedHealthCareSettings.imapPort;
       this.state.pop3Url = this.selectedHealthCareSettings.popUrl;
       this.state.pop3Port = this.selectedHealthCareSettings.popPort;
@@ -201,8 +199,6 @@ class HealthCareSettings extends Component {
         if (response.status === 200) {
           return response.json();
         } else {
-          const errorMessage = response.json();
-
           toast.error("Error in fetching the KARs", {
             position: "bottom-right",
             autoClose: 5000,
@@ -266,11 +262,10 @@ class HealthCareSettings extends Component {
     return true;
   }
 
-  handleChange(e) {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
-  }
+  handleChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({ [name]: value.trimStart() }); // Prevent leading spaces
+  };
 
   handleRadioChange(e) {
     if (e.target.value === "UserNamePwd") {
@@ -311,9 +306,11 @@ class HealthCareSettings extends Component {
 
   handleSubmitReportToChange(e) {
     if (e.target.value === "pha") {
+      // eslint-disable-next-line 
       this.state.ttpUrl = "";
     }
     if (e.target.value === "ttp") {
+      // eslint-disable-next-line 
       this.state.ttpUrl = "";
     }
     this.setState({
@@ -334,19 +331,22 @@ class HealthCareSettings extends Component {
 
   async handleKARChange(e) {
     const karsByHsIdList = this.state.karsByHsIdList;
+    const selectedId = e.target.value;
+    let kARDetails = this.state.karFhirServerURLList.filter(
+      (x) => x.id === selectedId
+    );
+    if (kARDetails.length === 0) {
+      return;
+    }
 
-    let kARDetails = this.state.karFhirServerURLList.filter((x) => {
-      return x.id == e.target.value;
-    });
-    const karInfoList = kARDetails[0].karsInfo;
-    karInfoList.sort(function (a, b) {
-      return b.id - a.id;
-    });
-    for (var i = 0; i < karsByHsIdList.length; i++) {
+    const karInfoList = kARDetails[0]?.karsInfo || []; // Use optional chaining and default empty array
+    karInfoList.sort((a, b) => b.id - a.id);
+
+    for (let i = 0; i < karsByHsIdList.length; i++) {
       const versionAndKarIdArr =
         karsByHsIdList[i].versionUniqueKarId.split("|");
 
-      karInfoList.filter((x) => {
+      karInfoList.forEach((x) => {
         if (
           x.karId === versionAndKarIdArr[0] &&
           x.karVersion === versionAndKarIdArr[1]
@@ -360,7 +360,7 @@ class HealthCareSettings extends Component {
     }
 
     await this.setState({
-      karFhirServerURL: e.target.value,
+      karFhirServerURL: selectedId,
       isKarFhirServerURLSelected: true,
       selectedKARDetails: karInfoList,
     });
@@ -396,6 +396,7 @@ class HealthCareSettings extends Component {
   handleSmtpSslEnabled = (event) => {
     const value = event.target.value === "true"; // Convert string to boolean
     this.setState({ smtpSslEnabled: value });
+
     // If False, reset TLS version
     if (!value) {
       this.setState({ directTlsVersion: "" });
@@ -435,6 +436,7 @@ class HealthCareSettings extends Component {
       rowData["isChanged"] = true;
     }
 
+    // eslint-disable-next-line 
     this.state.selectedKARDetails.filter((x) => {
       if (x.id === rowData.id && rowData.isChanged) {
         x = rowData;
@@ -466,12 +468,11 @@ class HealthCareSettings extends Component {
   }
 
   saveHealthCareSettings() {
-    var requestMethod = "";
-    var healthCareSettings = {
+    let requestMethod = "";
+    const healthCareSettings = {
       authType: this.state.authType,
       clientId:
-        (this.state.authType === "System" ||
-          this.state.authType === "SofBackend") &&
+        (this.state.authType === "System" || this.state.authType === "SofBackend") &&
         this.state.clientId
           ? this.state.clientId
           : this.state.username,
@@ -584,6 +585,7 @@ class HealthCareSettings extends Component {
       orgName: this.state.orgName ? this.state.orgName : null,
       orgIdSystem: this.state.orgIdSystem ? this.state.orgIdSystem : null,
       orgId: this.state.orgId ? this.state.orgId : null,
+      // eslint-disable-next-line 
       assigningAuthorityId: this.state.assigningAuthorityId
         ? this.state.assigningAuthorityId
         : null,
@@ -613,29 +615,30 @@ class HealthCareSettings extends Component {
           ? this.state.offHoursTimezone
           : null,
     };
+  
+    // Determine request method (PUT vs POST)
     if (!this.addNewHealthCare && this.selectedHealthCareSettings) {
       healthCareSettings["id"] = this.selectedHealthCareSettings.id;
       requestMethod = "PUT";
     } else {
       requestMethod = "POST";
     }
-
-    console.log(healthCareSettings);
-    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/healthcareSettings", {
+  
+    console.log("Request Data:", healthCareSettings);
+  
+    axiosInstance({
       method: requestMethod,
+      url: "/api/healthcareSettings",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(healthCareSettings),
+      data: JSON.stringify(healthCareSettings),
     })
       .then((response) => {
         if (response.status === 200) {
-          this.setState({
-            isSaved: true,
-          });
-          return response.json();
+          this.setState({ isSaved: true });
+          return response.data;
         } else {
-          // const errorMessage = response.json();
           toast.error("Error in Saving the HealthCare Settings", {
             position: "bottom-right",
             autoClose: 5000,
@@ -661,7 +664,7 @@ class HealthCareSettings extends Component {
             endThreshold: "",
             restApiUrl: "",
           });
-          toast.success("success", {
+          toast.success("Success", {
             position: "bottom-right",
             autoClose: 5000,
             hideProgressBar: false,
@@ -672,8 +675,23 @@ class HealthCareSettings extends Component {
           });
           this.saveKARSWithHealthCareSettings(this.selectedHealthCareSettings);
         }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        toast.error("Error in Saving the HealthCare Settings", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
       });
   }
+
+
+
   saveKARSWithHealthCareSettings(hcs) {
     const kars = this.state.selectedKARDetails;
     const updatedRows = kars.filter((x) => {
@@ -889,6 +907,11 @@ class HealthCareSettings extends Component {
                               required
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.username || ""}
+                              isInvalid={
+                                this.state.isValidated &&
+                                (this.state.username === "" ||
+                                  this.state.username === undefined)
+                              }
                             />
                             <Form.Control.Feedback type="invalid">
                               Please provide a Username.{" "}
@@ -950,6 +973,11 @@ class HealthCareSettings extends Component {
                               }
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.password || ""}
+                              isInvalid={
+                                this.state.isValidated &&
+                                (this.state.password === "" ||
+                                  this.state.password === undefined)
+                              }
                             />
                             <Form.Control.Feedback type="invalid">
                               Please provide a Password.
@@ -2466,6 +2494,7 @@ class HealthCareSettings extends Component {
                               defaultValue="Select FHIR Server URL"
                               onChange={(e) => this.handleKARChange(e)}
                               required={true}
+                              className="select-drop-down"
                             >
                               <option>Select FHIR Server URL</option>
                               {this.state.karFhirServerURLList.map((option) => (

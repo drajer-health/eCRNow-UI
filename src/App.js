@@ -10,21 +10,27 @@ import HealthCareSettingsList from "./Views/HealthCareSettingsList/HealthCareSet
 import PublicHealthAuthority from "./Views/PublicHealthAuthority/PublicHealthAuthority";
 import PublicHealthAuthorityList from "./Views/PublicHealthAuthorityList/PublicHealthAuthorityList";
 import KAR from "./Views/KAR/KAR";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Loginpage from "./Views/LoginPage/Loginpage";
+import Cookies from "js-cookie";
+import Logout from "./Components/Logout/Logout";
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
-      displayJSONObject: false,
-      isAuthorized: false,
+      isAuthorize: false,
+      authorize: false,
+      loading: true,
+      bypassAuth: false,
       selectedClientDetails: {},
       selectedHealthCareSettings: {},
       selectedPublicHealthAuthority: {},
       addNewHealthCare: true,
     };
+
     this.selectedClientDetails = this.selectedClientDetails.bind(this);
     this.selectedHealthCareSettings =
       this.selectedHealthCareSettings.bind(this);
@@ -78,61 +84,165 @@ class App extends Component {
     });
   }
 
+  setAuthorized = (value) => {
+    this.setState({ isAuthorize: value, loading: false }, () => {});
+  };
+
+  //  This would be better to keep. this will work from public api response
+
+  // async componentDidMount() {
+  //   const token = Cookies.get("jwt_token");
+
+  //   if (token) {
+  //     this.setAuthorized(true);
+  //     this.setState({authorize:true})
+  //   } else {
+  //     try {
+  //       const response = await axios.get("http://localhost:5000/api/auth");
+  //       const isAuthorize =
+  //         Array.isArray(response.data) && response.data.length > 0
+  //           ? response.data[0].bypassAuth
+  //           : false;
+  //       this.setAuthorized(isAuthorize);
+  //       this.setState({ authorize: isAuthorize });
+  //     } catch (error) {
+  //       this.setAuthorized(false);
+  //       this.setState({ authorize: false });
+  //     }
+  //   }
+  // }
+
+  async componentDidMount() {
+    const token = Cookies.get("jwt_token");
+    console.log("Raw Env Value:", process.env.REACT_APP_BYPASS_AUTH);
+    if (token) {
+      this.setAuthorized(true);
+      // this.setState({ authorize: true });
+    } else {
+      try {
+        // Convert .env variable to a boolean
+        const isAuthorize = process.env.REACT_APP_BYPASS_AUTH === "true";
+        this.setAuthorized(isAuthorize);
+        this.setState({ authorize: isAuthorize });
+
+        // Perform dynamic navigation based on the env variable
+        if (isAuthorize) {
+          return <Navigate to="/home" replace />;
+        } else {
+          return <Navigate to="/login" replace />; // Navigate to login if false
+        }
+      } catch (error) {
+        console.error("Error in authorization:", error);
+        this.setAuthorized(false);
+        this.setState({ authorize: false });
+      }
+    }
+  }
+  
+
   render() {
+    // While the auth status is loading, show a continuous spinner
+    if (this.state.loading) {
+      return (
+        <div className="loader-container">
+          <div className="spinner"></div>
+        </div>
+      );
+    }
+
     return (
       <div className="App">
-        <Header />
+        <Header bypassAuth={this.state.authorize} />
         <div className="main">
           <Container>
-            <Router basename={process.env.REACT_APP_ROUTER_BASE || ""}>
-              <Routes>
-                <Route
-                  path="/"
-                  element={<Authorizations authData={this.state} />}
-                />
-                <Route
-                  path="/clientDetails"
-                  element={
+            <Routes>
+              <Route path="/logout" element={<Logout />} />
+              {/* If user is authorized, navigating to /login will redirect them to /home */}
+              <Route
+                path="/login"
+                element={
+                  this.state.isAuthorize ? (
+                    <Navigate to="/home" replace />
+                  ) : (
+                    <Loginpage
+                      setAuthorized={this.setAuthorized}
+                      setIsLoginPageUser={this.props.setIsLoginPageUser}
+                    />
+                  )
+                }
+              />
+
+              {/* Protected Routes */}
+              <Route
+                path="/home"
+                element={
+                  this.state.isAuthorize ? (
+                    <Authorizations authData={this.state} />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/clientDetails"
+                element={
+                  this.state.isAuthorize ? (
                     <ClientDetails
                       selectedClientDetails={this.state.selectedClientDetails}
                       addNew={this.state.addNew}
                     />
-                  }
-                />
-                <Route
-                  path="/clientDetailsList"
-                  element={
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/clientDetailsList"
+                element={
+                  this.state.isAuthorize ? (
                     <ClientDetailsList
                       selectedClientDetails={this.selectedClientDetails}
                       addNew={this.addNew}
                     />
-                  }
-                />
-                <Route
-                  path="/healthCareSettings"
-                  element={
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/healthCareSettings"
+                element={
+                  this.state.isAuthorize ? (
                     <HealthCareSettings
                       selectedHealthCareSettings={
                         this.state.selectedHealthCareSettings
                       }
                       addNewHealthCare={this.state.addNewHealthCare}
                     />
-                  }
-                />
-                <Route
-                  path="/healthCareSettingsList"
-                  element={
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/healthCareSettingsList"
+                element={
+                  this.state.isAuthorize ? (
                     <HealthCareSettingsList
                       selectedHealthCareSettings={
                         this.selectedHealthCareSettings
                       }
                       addNewHealthCare={this.addNewHealthCare}
                     />
-                  }
-                />
-                <Route
-                  path="/publicHealthAuthority"
-                  element={
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/publicHealthAuthority"
+                element={
+                  this.state.isAuthorize ? (
                     <PublicHealthAuthority
                       selectedPublicHealthAuthority={
                         this.state.selectedPublicHealthAuthority
@@ -141,11 +251,15 @@ class App extends Component {
                         this.state.addNewPublicHealthAuthority
                       }
                     />
-                  }
-                />
-                <Route
-                  path="/publicHealthAuthorityList"
-                  element={
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/publicHealthAuthorityList"
+                element={
+                  this.state.isAuthorize ? (
                     <PublicHealthAuthorityList
                       selectedPublicHealthAuthority={
                         this.selectedPublicHealthAuthority
@@ -154,11 +268,33 @@ class App extends Component {
                         this.addNewPublicHealthAuthority
                       }
                     />
-                  }
-                />
-                <Route path="/kar" element={<KAR />} />
-              </Routes>
-            </Router>
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/kar"
+                element={
+                  this.state.isAuthorize ? (
+                    <KAR />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+
+              {/* Catch-all: redirect to appropriate route */}
+              <Route
+                path="*"
+                element={
+                  <Navigate
+                    to={this.state.isAuthorized ? "/home" : "/login"}
+                    replace
+                  />
+                }
+              />
+            </Routes>
           </Container>
         </div>
         <ToastContainer />

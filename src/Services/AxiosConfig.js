@@ -1,7 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-const baseURL = process.env.REACT_APP_ECR_BASE_URL || "http://localhost:8081";
+const baseURL = process.env.REACT_APP_ECR_BASE_URL;
 
 const axiosInstance = axios.create({
   baseURL,          

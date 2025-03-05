@@ -2497,13 +2497,16 @@ class HealthCareSettings extends Component {
                               className="select-drop-down"
                             >
                               <option>Select FHIR Server URL</option>
-                              {this.state.karFhirServerURLList.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                  {option.repoName +
-                                    " - " +
-                                    option.fhirServerURL}
-                                </option>
-                              ))}
+                              {Array.isArray(this.state.karFhirServerURLList) &&
+                                this.state.karFhirServerURLList.map(
+                                  (option) => (
+                                    <option key={option.id} value={option.id}>
+                                      {option.repoName +
+                                        " - " +
+                                        option.fhirServerURL}
+                                    </option>
+                                  )
+                                )}
                             </Form.Control>
                             <Form.Control.Feedback type="invalid">
                               Please provide a Encounter End Time Threshold.

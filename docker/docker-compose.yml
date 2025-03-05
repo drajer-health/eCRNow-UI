@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ecrnow-ui:latest
+    container_name: ecrnow-ui-container
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        - REACT_APP_ECR_BASE_URL=${REACT_APP_ECR_BASE_URL:-http://localhost:8081}
+        - REACT_APP_BYPASS_AUTH=${REACT_APP_BYPASS_AUTH:-true}
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_ECR_BASE_URL=${REACT_APP_ECR_BASE_URL:-http://localhost:8081}
+      - REACT_APP_BYPASS_AUTH=${REACT_APP_BYPASS_AUTH:-true}
+    volumes:
+      - ..:/app
+      - /app/node_modules

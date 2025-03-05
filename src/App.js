@@ -88,48 +88,28 @@ class App extends Component {
     this.setState({ isAuthorize: value, loading: false }, () => {});
   };
 
-  //  This would be better to keep. this will work from public api response
-
-  // async componentDidMount() {
-  //   const token = Cookies.get("jwt_token");
-
-  //   if (token) {
-  //     this.setAuthorized(true);
-  //     this.setState({authorize:true})
-  //   } else {
-  //     try {
-  //       const response = await axios.get("http://localhost:5000/api/auth");
-  //       const isAuthorize =
-  //         Array.isArray(response.data) && response.data.length > 0
-  //           ? response.data[0].bypassAuth
-  //           : false;
-  //       this.setAuthorized(isAuthorize);
-  //       this.setState({ authorize: isAuthorize });
-  //     } catch (error) {
-  //       this.setAuthorized(false);
-  //       this.setState({ authorize: false });
-  //     }
-  //   }
-  // }
 
   async componentDidMount() {
     const token = Cookies.get("jwt_token");
     console.log("Raw Env Value:", process.env.REACT_APP_BYPASS_AUTH);
+  
     if (token) {
       this.setAuthorized(true);
-      // this.setState({ authorize: true });
     } else {
       try {
-        // Convert .env variable to a boolean
-        const isAuthorize = process.env.REACT_APP_BYPASS_AUTH === "true";
+        // Check if the env variable exists; default to true if not set
+        const isAuthorize = 
+          process.env.REACT_APP_BYPASS_AUTH 
+            ? process.env.REACT_APP_BYPASS_AUTH === "true" 
+            : true;  
         this.setAuthorized(isAuthorize);
         this.setState({ authorize: isAuthorize });
-
-        // Perform dynamic navigation based on the env variable
+  
+        // Perform navigation based on the final value of isAuthorize
         if (isAuthorize) {
           return <Navigate to="/home" replace />;
         } else {
-          return <Navigate to="/login" replace />; // Navigate to login if false
+          return <Navigate to="/login" replace />;
         }
       } catch (error) {
         console.error("Error in authorization:", error);

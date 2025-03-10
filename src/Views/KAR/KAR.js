@@ -11,6 +11,7 @@ import {
 import "./KAR.css";
 import { toast } from "react-toastify";
 import { withRouter } from "../../withRouter";
+import axiosInstance from "../../Services/AxiosConfig";
 
 class KAR extends Component {
   constructor(props) {
@@ -94,58 +95,45 @@ class KAR extends Component {
     });
   }
 
-  saveKAR() {
+  async saveKAR() {
     const karObj = {
       repoName: this.state.repoName,
       fhirServerURL: this.state.fhirServerURL,
       karsInfo: this.state.details,
     };
 
-    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/kar", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(karObj),
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          this.setState({
-            isSaved: true,
-          });
-          return response.json();
-        } else {
-          // const errorMessage = response.json();
-          toast.error("Error in Saving the Knowledge Artifact Repositories", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-          return;
-        }
-      })
-      .then((result) => {
-        if (result) {
-          this.setState({
-            fhirServerURL: "",
-            details: [],
-            karRetrieved: false,
-          });
-          toast.success("KAR Details are saved successfully.", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-        }
+    try {
+      const response = await axiosInstance.post("/api/kar", karObj);
+      if (response.status === 200) {
+        this.setState({
+          isSaved: true,
+          fhirServerURL: "",
+          details: [],
+          karRetrieved: false,
+        });
+  
+        toast.success("KAR Details are saved successfully.", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      }
+
+    } catch (error) {
+      toast.error("Error in Saving the Knowledge Artifact Repositories", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+    }
   }
 
   render() {

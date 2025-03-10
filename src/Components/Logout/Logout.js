@@ -1,26 +1,16 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import Cookies from 'js-cookie'
+export const performLogout = () => {
+  localStorage.clear();  // Clear local storage, session storage & cookies
+  sessionStorage.clear();
+  Cookies.remove("jwt_token")
+  Cookies.remove("refresh_token")
+};
 
 const Logout = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Clear local storage & cookies
-    localStorage.clear();
-    document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
-    });
-
-    // Set flag for logout success
-    localStorage.setItem("logoutSuccess", "true");
-
-    // Redirect to login
-    window.location.href = "/login";
-  }, [navigate]);
-
-  return null; // No UI needed, just handling logout
+  performLogout(); // Call logout explicitly only when Logout component is visited
+  localStorage.setItem("logoutSuccess", "true");
+  window.location.replace("/login"); // Prevents back navigation
+  return null;
 };
 
 export default Logout;

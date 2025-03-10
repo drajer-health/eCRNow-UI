@@ -47,7 +47,6 @@ getAllHealthCareSettings() {
   axiosInstance
     .get("/api/healthcareSettings/")
     .then((response) => {
-      // Axios automatically treats status codes 200-299 as success.
       if (response.status !== 200) {
         toast.error("Error in getting the HealthCareSettings", {
           position: "bottom-right",
@@ -86,12 +85,9 @@ getAllHealthCareSettings() {
     this.props.navigate("/healthCareSettings");
   };
 
-  editHealthCareSettings(selectedHealthCareSettings) {
-    console.log(selectedHealthCareSettings.id);
-    
+  editHealthCareSettings(selectedHealthCareSettings) {    
     this.props.addNewHealthCare({ addNewHealthCare: false });
     this.props.selectedHealthCareSettings(selectedHealthCareSettings);
-    // this.props.history.push("healthCareSettings");
     this.props.navigate("/healthCareSettings");
   }
 

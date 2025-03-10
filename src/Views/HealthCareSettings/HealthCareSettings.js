@@ -623,9 +623,7 @@ class HealthCareSettings extends Component {
     } else {
       requestMethod = "POST";
     }
-  
-    console.log("Request Data:", healthCareSettings);
-  
+    
     axiosInstance({
       method: requestMethod,
       url: "/api/healthcareSettings",

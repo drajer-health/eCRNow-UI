@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { toast } from "react-toastify";  // Import Toastify
+import { scheduleRefreshToken } from "../../Services/AxiosConfig";
 
 export default function LoginPage({ setAuthorized }) {
   const [username, setUsername] = useState("");
@@ -12,8 +13,8 @@ export default function LoginPage({ setAuthorized }) {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ username: "", password: "" });
   const [isFormValid, setIsFormValid] = useState(false);
-  const [loginError, setLoginError] = useState(""); // State for login error message
-  const [isLoading, setIsLoading] = useState(false); // State for loader
+  const [loginError, setLoginError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   function validateForm() {
@@ -42,86 +43,65 @@ export default function LoginPage({ setAuthorized }) {
     return valid;
   }
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-
-    if (validateForm()) {
-      setIsLoading(true); // Show loader
-      setLoginError("")
-
-      // Convert data to URL-encoded format
+    if (!validateForm()) return;
+    setIsLoading(true);
+    setLoginError("");
+  
+    try {
       const formData = new URLSearchParams();
       formData.append("username", username);
       formData.append("password", password);
+  
+      const response = await axios.post(
+        `${process.env.REACT_APP_ECR_BASE_URL}/api/auth/generateAuthToken`, 
+        formData.toString(),
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      );
+  
+      if (response.data?.access_token) {
+        const { access_token, refresh_token } = response.data;
+        Cookies.set("jwt_token", access_token);
+        if (refresh_token) {
+          Cookies.set("refresh_token", refresh_token);
+        }
 
-      // Replace fetch with axios
-      axios
-        .post(
-          "http://localhost:8081/api/auth/generateAuthToken",
-          formData.toString(),
-          {
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-          }
-        )
-        .then((response) => {
-          // Check if the response is valid and contains a token
-          if (response.data && response.data.access_token) {
-            // Store JWT token in a cookie
-            Cookies.set("jwt_token", response.data.access_token, {
-              expires: 1,
-            }); // Expires in 1 day
-
-            // Store Refresh Token if provided
-            if (response.data.refresh_token) {
-              Cookies.set("refresh_token", response.data.refresh_token, {
-                expires: 30,
-              }); // Expires in 30 days
-            }
-            setAuthorized(true); // Update isAuthorized state in App.js
-            
-            toast.success("Login successful!", {
-              pauseOnHover: false,
-              hideProgressBar: false,
-              theme: "colored",
-              autoClose: 5000,
-              position:"bottom-right",
-            });
-
-            setTimeout(() => {
-              setIsLoading(false);
-              navigate("/home"); // Navigate to home page
-            
-            }, 2000);
-          } else {
-            // If the response is invalid or token is undefined
-            console.error("Invalid login response:", response.data);
-            setLoginError("Invalid username or password"); // Set login error message
-            setIsLoading(false); // Hide loader
-            toast.error("Invalid username or password", {
-              hideProgressBar: false,
-              theme: "colored",
-              pauseOnHover: false,
-              autoClose: 5000,
-              position:"bottom-right",
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Error:", error.message);
-          setLoginError("Invalid username or password"); // Set login error message
-          setIsLoading(false); // Hide loader
-          toast.error("Error: Invalid username or password", {
-            hideProgressBar: false,
-            theme: "colored",
-            pauseOnHover: false,
-            position:"bottom-right",
-          });
+        await scheduleRefreshToken(access_token);
+        setAuthorized(true);
+        toast.success("Login successful!", {
+          pauseOnHover: false,
+          hideProgressBar: false,
+          theme: "colored",
+          autoClose: 5000,
+          position: "bottom-right",
         });
+  
+        setTimeout(() => {
+          setIsLoading(false);
+          navigate("/home");
+        }, 2000);
+      } else {
+        handleLoginError();
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+      handleLoginError();
     }
   }
-
+  
+  const handleLoginError = () => {
+    setLoginError("Invalid username or password");
+    setIsLoading(false);
+    toast.error("Invalid username or password", {
+      hideProgressBar: false,
+      theme: "colored",
+      pauseOnHover: false,
+      autoClose: 5000,
+      position: "bottom-right",
+    });
+  };
+  
   function handleUsernameChange(e) {
     const value = e.target.value;
     setUsername(value);
@@ -160,17 +140,23 @@ export default function LoginPage({ setAuthorized }) {
     setIsFormValid(username.length >= 3 && password.length >= 4);
   }, [username, password]);
 
-  // logout toast
   useEffect(() => {
     if (localStorage.getItem("logoutSuccess")) {
-      toast.success("Logout Successfully",{
+      toast.success("Logout Successfully", {
         theme: "colored",
         pauseOnHover: false,
-        position:"bottom-right",
-        
-        
+        position: "bottom-right",
       });
-      localStorage.removeItem("logoutSuccess"); // Clear flag after showing toast
+      localStorage.removeItem("logoutSuccess");
+    }
+  
+    if (localStorage.getItem("sessionExpired")) {
+      toast.error("Session expired. Please log in again.", {
+        theme: "colored",
+        pauseOnHover: false,
+        position: "bottom-right",
+      });
+      localStorage.removeItem("sessionExpired");
     }
   }, []);
 

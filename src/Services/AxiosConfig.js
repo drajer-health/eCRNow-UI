@@ -2,76 +2,117 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const baseURL = process.env.REACT_APP_ECR_BASE_URL;
+const axiosInstance = axios.create({ baseURL });
 
-const axiosInstance = axios.create({
-  baseURL,          
+let refreshTimeout;
+
+// Decode JWT and extract expiration time
+const decodeToken = (token) => {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+};
+
+// Schedule token refresh before it expires
+export const scheduleRefreshToken = async (token) => {
+  clearTimeout(refreshTimeout);
+
+  const decoded = decodeToken(token);
+  if (!decoded || !decoded.exp) return;
+
+  let expiresInMs = decoded.exp * 1000 - Date.now();
+  let refreshInMs = expiresInMs - (parseInt(process.env.REACT_APP_REFRESH_TIME, 10) || 60000); 
+  refreshTimeout = setTimeout(refreshAccessToken, Math.max(refreshInMs, 0));
+};
+
+// Refresh token function
+export const refreshAccessToken = async () => {
+  const refreshToken = Cookies.get("refresh_token");
+  if (!refreshToken) return handleSessionExpired();
+
+  try {
+    console.log("🔄 Refreshing token...");
+    const response = await axios.post(
+      `${baseURL}/api/auth/refresh-token`,
+      new URLSearchParams({ refresh_token: refreshToken }).toString(),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    const { access_token, refresh_token } = response.data || {};
+    if (!access_token || !refresh_token) throw new Error("Invalid refresh response");
+
+    Cookies.set("jwt_token", access_token,);
+    Cookies.set("refresh_token", refresh_token,);
+    await scheduleRefreshToken(access_token);
+
+    return access_token;
+  } catch (error) {
+    handleSessionExpired();
+  }
+};
+
+// Handle session expiration
+const handleSessionExpired = () => {
+  console.warn("⚠ Session expired. Logging out...");
+  Cookies.remove("jwt_token");
+  Cookies.remove("refresh_token");
+  localStorage.setItem("logoutSuccess", "sessionExpired");
+  window.location.href = "/logout";
+};
+
+// Axios Request Interceptor
+
+axiosInstance.interceptors.request.use(async (config) => {
+  const isBypassAuth = process.env.REACT_APP_BYPASS_AUTH !== 'false'
+
+  if (isBypassAuth) {
+    return config; // Allow API call without token
+  }
+
+  let token = Cookies.get("jwt_token");
+
+  if (!token || decodeToken(token)?.exp * 1000 < Date.now()) {
+    console.log("⚠ Token expired, refreshing...");
+    token = await refreshAccessToken();
+    if (!token) throw new Error("Session expired, please log in again.");
+  }
+
+  config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
-// Request interceptor to attach JWT token if exists
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = Cookies.get("jwt_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor for refreshing token if expired
+// Axios Response Interceptor for handling 401 errors
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-    // If the error status is 401 and we haven't retried yet:
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
-      try {
-        // Get refresh token from cookie
-        const refreshToken = Cookies.get("refresh_token");
-        // Send the refresh token as URL-encoded form data:
-        const refreshResponse = await axiosInstance.post(
-          "/api/auth/refresh-token",
-          new URLSearchParams({ refresh_token: refreshToken }).toString(),
-          {
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-          }
-        );
-        if (
-          refreshResponse.data &&
-          refreshResponse.data.access_token
-        ) {
-          // Update cookies with new tokens
-          Cookies.set("jwt_token", refreshResponse.data.access_token, {
-            expires: 1,
-          });
-          if (refreshResponse.data.refresh_token) {
-            Cookies.set(
-              "refresh_token",
-              refreshResponse.data.refresh_token,
-              { expires: 30 / 1440 } // 30 minutes in days
-            );
-          }
-          // Update the original request's Authorization header
-          originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.access_token}`;
-          // Retry the original request
-          return axiosInstance(originalRequest);
-        }
-      } catch (refreshError) {
-        // If refresh fails, optionally logout the user or handle error
-        return Promise.reject(refreshError);
+    if (error.response?.status === 401 && !error.config._retry) {
+      error.config._retry = true;
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        error.config.headers.Authorization = `Bearer ${newToken}`;
+        return axiosInstance(error.config);
       }
     }
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance;
+// Handle login success and start token refresh cycle
+export const handleLoginSuccess = async (accessToken, refreshToken) => {
+  Cookies.set("jwt_token", accessToken);
+  Cookies.set("refresh_token", refreshToken);
 
+  await scheduleRefreshToken(accessToken);
+};
+
+// Resume token refresh scheduling if a token exists
+(async () => {
+  const existingToken = Cookies.get("jwt_token");
+  if (existingToken) {
+    await scheduleRefreshToken(existingToken);
+  }
+})();
+
+export default axiosInstance;

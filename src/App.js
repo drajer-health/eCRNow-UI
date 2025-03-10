@@ -16,6 +16,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Loginpage from "./Views/LoginPage/Loginpage";
 import Cookies from "js-cookie";
 import Logout from "./Components/Logout/Logout";
+import { performLogout } from "./Components/Logout/Logout";
+
 
 class App extends Component {
   constructor() {
@@ -88,40 +90,60 @@ class App extends Component {
     this.setState({ isAuthorize: value, loading: false }, () => {});
   };
 
-
   async componentDidMount() {
     const token = Cookies.get("jwt_token");
-    console.log("Raw Env Value:", process.env.REACT_APP_BYPASS_AUTH);
+    const bypassAuth = process.env.REACT_APP_BYPASS_AUTH !== "false";
+    const isFirstLoad = !sessionStorage.getItem("sessionActive");
+  
+    if (isFirstLoad && !bypassAuth) {
+      performLogout();
+      sessionStorage.setItem("sessionActive", "true");
+      this.setState({ loading: false });
+      return;
+    }
   
     if (token) {
       this.setAuthorized(true);
     } else {
       try {
-        // Check if the env variable exists; default to true if not set
-        const isAuthorize = 
-          process.env.REACT_APP_BYPASS_AUTH 
-            ? process.env.REACT_APP_BYPASS_AUTH === "true" 
-            : true;  
-        this.setAuthorized(isAuthorize);
-        this.setState({ authorize: isAuthorize });
+        const isAuthorized = bypassAuth;
+        this.setAuthorized(isAuthorized);
+        this.setState({ authorize: isAuthorized, loading: false });
   
-        // Perform navigation based on the final value of isAuthorize
-        if (isAuthorize) {
-          return <Navigate to="/home" replace />;
-        } else {
-          return <Navigate to="/login" replace />;
-        }
+        return <Navigate to={isAuthorized ? "/home" : "/login"} replace />;
+        
       } catch (error) {
         console.error("Error in authorization:", error);
         this.setAuthorized(false);
-        this.setState({ authorize: false });
+        this.setState({ authorize: false, loading: false });
       }
     }
+  
+    window.addEventListener("storage", this.handleTokenChange); // Listen for token removal across tabs
+  }
+  
+  
+  handleTokenChange = (event) => {    // Handle token removal in all tabs
+    if (event.key === "jwt_token" && !event.newValue) {
+      this.setAuthorized(false);
+      window.location.href = "/login";
+    }
+  };
+  
+  handleApiError = (error) => {    // Handle API failures due to token expiration
+    if (error.response && error.response.status === 401) {
+      console.log("Unauthorized request! Logging out...");
+      performLogout();
+      window.location.href = "/login";
+    }
+  };
+  
+  componentWillUnmount() {
+    window.removeEventListener("storage", this.handleTokenChange);     // Remove event listener on unmount
   }
   
 
-  render() {
-    // While the auth status is loading, show a continuous spinner
+  render() {  // While the auth status is loading, show a continuous spinner
     if (this.state.loading) {
       return (
         <div className="loader-container">

@@ -43,30 +43,10 @@ class HealthCareSettingsList extends Component {
     return strurl;
   }
 
-getAllHealthCareSettings() {
-  axiosInstance
-    .get("/api/healthcareSettings/")
-    .then((response) => {
-      if (response.status !== 200) {
-        toast.error("Error in getting the HealthCareSettings", {
-          position: "bottom-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
-        return;
-      }
-      return response.data;
-    })
-    .then((result) => {
-      if (result) {
-        this.setState({ details: result });
-      }
-    })
-    .catch((error) => {
+async getAllHealthCareSettings() {
+  try {
+    const response = await axiosInstance.get("/api/healthcareSettings/");
+    if (response.status !== 200) {
       toast.error("Error in getting the HealthCareSettings", {
         position: "bottom-right",
         autoClose: 5000,
@@ -76,8 +56,22 @@ getAllHealthCareSettings() {
         progress: undefined,
         theme: "colored",
       });
-      console.error("Error:", error);
+      return;
+    }
+    this.setState({ details: response?.data || [] });
+
+  } catch (error){
+    toast.error("Error in getting the HealthCareSettings", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      draggable: true,
+      progress: undefined,
+      theme: "colored",
     });
+    console.error("Error:", error);
+  }
 }
 
   openAddNewHealthCareSettings = () => {

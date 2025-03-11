@@ -188,13 +188,14 @@ class HealthCareSettings extends Component {
       this.openHealthCareSettingsList.bind(this);
     this.openKAR = this.openKAR.bind(this);
   }
+  
   async getKARs() {
     try {
       const response = await axiosInstance.get("/api/kars/");
   
       if (response.status === 200) {
         this.setState({
-          karFhirServerURLList: response,
+          karFhirServerURLList: response.data || [],
         });
       }
     } catch (error) {
@@ -216,7 +217,7 @@ class HealthCareSettings extends Component {
   
       if (response.status === 200) {
         this.setState({
-          karsByHsIdList: response.data,
+          karsByHsIdList: response.data || [],
         });
       }
     } catch (error) {
@@ -306,40 +307,40 @@ class HealthCareSettings extends Component {
     });
   }
 
-  async handleKARChange(e) {
-    const karsByHsIdList = this.state.karsByHsIdList;
+  async handleKARChange(e) {  
     const selectedId = e.target.value;
-    let kARDetails = this.state.karFhirServerURLList.filter(
-      (x) => x.id === selectedId
-    );
-    if (kARDetails.length === 0) {
+  
+    if (!this.state.karFhirServerURLList) {
       return;
     }
 
-    const karInfoList = kARDetails[0]?.karsInfo || []; // Use optional chaining and default empty array
-    karInfoList.sort((a, b) => b.id - a.id);
-
-    for (let i = 0; i < karsByHsIdList.length; i++) {
-      const versionAndKarIdArr =
-        karsByHsIdList[i].versionUniqueKarId.split("|");
-
-      karInfoList.forEach((x) => {
-        if (
-          x.karId === versionAndKarIdArr[0] &&
-          x.karVersion === versionAndKarIdArr[1]
-        ) {
-          x["isActive"] = karsByHsIdList[i].isActive;
-          x["subscriptionsEnabled"] = karsByHsIdList[i].subscriptionsEnabled;
-          x["covidOnly"] = karsByHsIdList[i].covidOnly;
-          x["outputFormat"] = karsByHsIdList[i].outputFormat;
-        }
-      });
+    let kARDetails = this.state.karFhirServerURLList.filter(
+      (x) => String(x.id) === String(selectedId)
+    );
+    
+    if (kARDetails.length === 0) {
+      return;
     }
-
+  
+    const karInfoList = kARDetails[0]?.karsInfo || [];
+    karInfoList.sort((a, b) => b.id - a.id);
+      
+    // Preserve checkbox state from karsByHsIdList
+    const updatedKarInfoList = karInfoList.map((kar) => {
+      const matchingKar = this.state.karsByHsIdList.find((k) => {
+        const versionAndKarIdArr = k.versionUniqueKarId.split("|");
+        return kar.karId === versionAndKarIdArr[0] && kar.karVersion === versionAndKarIdArr[1];
+      });
+  
+      return matchingKar
+        ? { ...kar, ...matchingKar } // Merge saved state
+        : kar;
+    });
+    
     await this.setState({
       karFhirServerURL: selectedId,
       isKarFhirServerURLSelected: true,
-      selectedKARDetails: karInfoList,
+      selectedKARDetails: updatedKarInfoList, // Use updated list with preserved state
     });
   }
 
@@ -668,29 +669,25 @@ class HealthCareSettings extends Component {
 
 
   async saveKARSWithHealthCareSettings(hcs) {
-    const { selectedKARDetails, selectedHealthCareSettings } = this.state;
-    const updatedRows = selectedKARDetails.filter((kar) => kar.isChanged);
-
-    // Transform data using map()
-    const hsKARStatus = updatedRows.map((kar) => ({
-      hsId: selectedHealthCareSettings?.id,
-      karId: kar.karId,
-      karVersion: kar.karVersion,
-      versionUniqueKarId: `${kar.karId}|${kar.karVersion}`,
-      isActive: kar.isActive ?? false,
-      subscriptionsEnabled: kar.subscriptionsEnabled ?? false,
-      covidOnly: kar.covidOnly ?? false,
-      outputFormat: kar.outputFormat,
-    }));   
-
     try {
+      const kars = this.state.selectedKARDetails;
+      const updatedRows = kars.filter((x) => x.isChanged === true);
+  
+      const hsKARStatus = updatedRows.map((row) => ({
+        hsId: this.selectedHealthCareSettings.id,
+        karId: row.karId,
+        karVersion: row.karVersion,
+        versionUniqueKarId: `${row.karId}|${row.karVersion}`,
+        isActive: row.isActive || false,
+        subscriptionsEnabled: row.subscriptionsEnabled || false,
+        covidOnly: row.covidOnly || false,
+        outputFormat: row.outputFormat,
+      }));
+  
       const response = await axiosInstance.post("/api/addKARStatus/", hsKARStatus);
   
       if (response.status === 200) {
-        this.setState({
-          isSaved: true,
-        });
-  
+        this.setState({ isSaved: true });
         this.openHealthCareSettingsList();
       }
     } catch (error) {

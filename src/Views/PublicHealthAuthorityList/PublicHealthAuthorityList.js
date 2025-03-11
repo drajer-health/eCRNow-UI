@@ -57,7 +57,7 @@ class PublicHealthAuthorityList extends Component {
           });
           return;
         } else {
-          return response.data;
+          return response.data || [];
         }
       })
       .then((result) => {

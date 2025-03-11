@@ -76,20 +76,21 @@ class KAR extends Component {
   }
 
   renderKARTable(bundle) {
-    const tableEntries = [];
-    const bundleEntries = bundle.entry;
-    if (bundleEntries.length > 0) {
-      for (var i = 0; i < bundleEntries.length; i++) {
-        const resource = bundleEntries[i].resource;
-        const tableRow = {
-          karId: resource.id ? resource.id : "",
-          karName: resource.name ? resource.name : "",
-          karPublisher: resource.publisher ? resource.publisher : "",
-          karVersion: resource.version ? resource.version : "",
-        };
-        tableEntries.push(tableRow);
-      }
+    if (!bundle || !Array.isArray(bundle.entry)) {
+      console.error("Invalid bundle format or missing 'entry' property:", bundle);
+      this.setState({ details: [] }); // Reset state if no valid data
+      return;
     }
+  
+    const tableEntries = bundle.entry.map((entry) => {
+      const resource = entry.resource || {}; // Ensure resource is defined
+      return {
+        karId: resource.id || "",
+        karName: resource.name || "",
+        karPublisher: resource.publisher || "",
+        karVersion: resource.version || "",
+      };
+    });
     this.setState({
       details: tableEntries,
     });

@@ -36,3 +36,37 @@ Change the REACT_APP_ECR_BASE_URL value to use the eCRNow backend service base U
 ### Additional Configuration Changes:
 
 To build and deploy the application in Production environment or to any Tomcat web server. The detailed instructions are documented and present in this repository. File Name: Steps to Run eCRNow-UI.docx
+
+## Setup and Usage full docker mode
+
+### Build the Docker Image
+Run the following command to build the Docker image:
+
+```sh
+docker build --build-arg REACT_APP_ECR_BASE_URL=http://localhost:8081 \
+             --build-arg REACT_APP_BYPASS_AUTH=true \
+             -t ecrnow-ui:latest \
+             -f docker/Dockerfile .
+```
+
+### Run the Container
+Use this command to start the container:
+
+```sh
+docker run -d -p 3000:80 --name ecrnow-ui ecrnow-ui:latest
+```
+
+### Access the Application
+Once the container is running, open your browser and go to:
+```
+http://localhost:3000
+```
+
+### Stop and Remove the Container
+```sh
+docker stop ecrnow-ui && docker rm ecrnow-ui
+```
+
+## Notes
+- Ensure that the `nginx.conf` file is correctly set up inside the `docker` directory.
+- If using `docker-compose`, update the paths accordingly.

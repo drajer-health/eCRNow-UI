@@ -5,14 +5,13 @@ import {
   Col,
   Form,
   Card,
-  Accordion,
   Button,
   Table,
-  OverlayTrigger,
 } from "react-bootstrap";
 import "./KAR.css";
 import { toast } from "react-toastify";
 import { withRouter } from "../../withRouter";
+import axiosInstance from "../../Services/AxiosConfig";
 
 class KAR extends Component {
   constructor(props) {
@@ -77,82 +76,70 @@ class KAR extends Component {
   }
 
   renderKARTable(bundle) {
-    const tableEntries = [];
-    const bundleEntries = bundle.entry;
-    if (bundleEntries.length > 0) {
-      for (var i = 0; i < bundleEntries.length; i++) {
-        const resource = bundleEntries[i].resource;
-        const tableRow = {
-          karId: resource.id ? resource.id : "",
-          karName: resource.name ? resource.name : "",
-          karPublisher: resource.publisher ? resource.publisher : "",
-          karVersion: resource.version ? resource.version : "",
-        };
-        tableEntries.push(tableRow);
-      }
+    if (!bundle || !Array.isArray(bundle.entry)) {
+      console.error("Invalid bundle format or missing 'entry' property:", bundle);
+      this.setState({ details: [] }); // Reset state if no valid data
+      return;
     }
+  
+    const tableEntries = bundle.entry.map((entry) => {
+      const resource = entry.resource || {}; // Ensure resource is defined
+      return {
+        karId: resource.id || "",
+        karName: resource.name || "",
+        karPublisher: resource.publisher || "",
+        karVersion: resource.version || "",
+      };
+    });
     this.setState({
       details: tableEntries,
     });
   }
 
-  saveKAR() {
+  async saveKAR() {
     const karObj = {
       repoName: this.state.repoName,
       fhirServerURL: this.state.fhirServerURL,
       karsInfo: this.state.details,
     };
 
-    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/kar", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(karObj),
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          this.setState({
-            isSaved: true,
-          });
-          return response.json();
-        } else {
-          // const errorMessage = response.json();
-          toast.error("Error in Saving the Knowledge Artifact Repositories", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-          return;
-        }
-      })
-      .then((result) => {
-        if (result) {
-          this.setState({
-            fhirServerURL: "",
-            details: [],
-            karRetrieved: false,
-          });
-          toast.success("KAR Details are saved successfully.", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-        }
+    try {
+      const response = await axiosInstance.post("/api/kar", karObj);
+      if (response.status === 200) {
+        this.setState({
+          isSaved: true,
+          fhirServerURL: "",
+          details: [],
+          karRetrieved: false,
+        });
+  
+        toast.success("KAR Details are saved successfully.", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      }
+
+    } catch (error) {
+      toast.error("Error in Saving the Knowledge Artifact Repositories", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+    }
   }
 
   render() {
     const setShow = () => this.setState({ isSaved: false });
-
+// eslint-disable-next-line 
     const handleSubmit = (event) => {
       const form = event.currentTarget;
       if (form.checkValidity() === false) {
@@ -234,8 +221,8 @@ class KAR extends Component {
                       <Button
                         type="button"
                         disabled={
-                          this.state.repoName == undefined &&
-                          this.state.fhirServerURL == undefined
+                          this.state.repoName === undefined &&
+                          this.state.fhirServerURL === undefined
                         }
                         onClick={this.getKARs}
                       >
@@ -284,17 +271,6 @@ class KAR extends Component {
                 </Col>
               </Row>
             </Form>
-            {/* <Row>
-                            <Col className="text-center">
-                                <button
-                                    className="btn btn-primary submitBtn"
-                                    type="button"
-                                    onClick={e => this.saveClientDetails(e)}
-                                >
-                                    Save
-                                </button>
-                            </Col>
-                        </Row> */}
           </Col>
         </Row>
       </div>

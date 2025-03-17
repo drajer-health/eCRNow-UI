@@ -268,9 +268,7 @@ class Authorizations extends Component {
       });
   }
 
-  getResourcesData() {
-    const patientData = this.getPatientData();
-    
+  getResourcesData() {    
   }
   getPatientData() {
     fetch(

@@ -9,10 +9,9 @@ import {
 } from "react-bootstrap";
 import "./HealthCareSettingsList.css";
 import { toast } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import EditIcon from "@mui/icons-material/Edit";
 import { withRouter } from "../../withRouter";
+import axiosInstance from "../../Services/AxiosConfig";
 
 const tooltip = <Tooltip id="tooltip">Edit</Tooltip>;
 
@@ -44,33 +43,35 @@ class HealthCareSettingsList extends Component {
     return strurl;
   }
 
-  getAllHealthCareSettings() {
-    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/healthcareSettings/", {
-      method: "GET",
-    })
-      .then((response) => {        
-        if (response.status !== 200) {
-          toast.error("Error in getting the HealthCareSettings", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-          return;
-        } else {
-          return response.json();
-        }
-      })
-      .then((result) => {
-        console.log("result", result);
-        
-        this.setState({
-          details: result,
-        });
+async getAllHealthCareSettings() {
+  try {
+    const response = await axiosInstance.get("/api/healthcareSettings/");
+    if (response.status !== 200) {
+      toast.error("Error in getting the HealthCareSettings", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+      return;
+    }
+    this.setState({ details: response?.data || [] });
+
+  } catch (error){
+    toast.error("Error in getting the HealthCareSettings", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      draggable: true,
+      progress: undefined,
+      theme: "colored",
+    });
+    console.error("Error:", error);
+  }
 }
 
   openAddNewHealthCareSettings = () => {
@@ -78,12 +79,9 @@ class HealthCareSettingsList extends Component {
     this.props.navigate("/healthCareSettings");
   };
 
-  editHealthCareSettings(selectedHealthCareSettings) {
-    console.log(selectedHealthCareSettings.id);
-    
+  editHealthCareSettings(selectedHealthCareSettings) {    
     this.props.addNewHealthCare({ addNewHealthCare: false });
     this.props.selectedHealthCareSettings(selectedHealthCareSettings);
-    // this.props.history.push("healthCareSettings");
     this.props.navigate("/healthCareSettings");
   }
 

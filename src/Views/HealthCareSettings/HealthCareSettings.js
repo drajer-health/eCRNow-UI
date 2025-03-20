@@ -127,6 +127,11 @@ class HealthCareSettings extends Component {
       this.state.smtpUrl = this.selectedHealthCareSettings.smtpUrl;
       this.state.smtpAuthEnabled =
         this.selectedHealthCareSettings.smtpAuthEnabled;
+      this.state.debugEnabled = this.selectedHealthCareSettings.debugEnabled;
+      this.state.imapAuthEnabled =
+        this.selectedHealthCareSettings.imapAuthEnabled;
+      this.state.imapSslEnabled =
+        this.selectedHealthCareSettings.imapSslEnabled;
       this.state.smtpSslEnabled =
         this.selectedHealthCareSettings.smtpSslEnabled;
       this.state.directTlsVersion =
@@ -188,49 +193,71 @@ class HealthCareSettings extends Component {
       this.openHealthCareSettingsList.bind(this);
     this.openKAR = this.openKAR.bind(this);
   }
-  
-  async getKARs() {
-    try {
-      const response = await axiosInstance.get("/api/kars/");
-  
-      if (response.status === 200) {
-        this.setState({
-          karFhirServerURLList: response.data || [],
-        });
-      }
-    } catch (error) {
-      toast.error("Error in fetching the KARs", {
-        position: "bottom-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
+  getKARs() {
+    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/kars/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        } else {
+          toast.error("Error in fetching the KARs", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            draggable: true,
+            progress: undefined,
+          });
+          return;
+        }
+      })
+      .then((result) => {
+        if (result) {
+          this.setState({
+            karFhirServerURLList: result,
+          });
+        }
       });
-    }
   }
 
-  async getKARSByHsId(hsId) {
-    try {
-      const response = await axiosInstance.get(`/api/karStatusByHsId?hsId=${hsId}`);
-  
-      if (response.status === 200) {
-        this.setState({
-          karsByHsIdList: response.data || [],
-        });
+  getKARSByHsId(hsId) {
+    fetch(
+      process.env.REACT_APP_ECR_BASE_URL + "/api/karStatusByHsId?hsId=" + hsId,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    } catch (error) {
-      toast.error("Error in fetching the KARs By HsId", {
-        position: "bottom-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
+    )
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        } else {
+          // const errorMessage = response.json();
+          toast.error("Error in fetching the KARs By HsId", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          });
+          return;
+        }
+      })
+      .then((result) => {
+        if (result) {
+          this.setState({
+            karsByHsIdList: result,
+          });
+        }
       });
-    }
   }
 
   isEmpty(obj) {
@@ -284,11 +311,11 @@ class HealthCareSettings extends Component {
 
   handleSubmitReportToChange(e) {
     if (e.target.value === "pha") {
-      // eslint-disable-next-line 
+      // eslint-disable-next-line
       this.state.ttpUrl = "";
     }
     if (e.target.value === "ttp") {
-      // eslint-disable-next-line 
+      // eslint-disable-next-line
       this.state.ttpUrl = "";
     }
     this.setState({
@@ -307,40 +334,40 @@ class HealthCareSettings extends Component {
     });
   }
 
-  async handleKARChange(e) {  
+  async handleKARChange(e) {
+    const karsByHsIdList = this.state.karsByHsIdList;
     const selectedId = e.target.value;
-  
-    if (!this.state.karFhirServerURLList) {
-      return;
-    }
-
     let kARDetails = this.state.karFhirServerURLList.filter(
-      (x) => String(x.id) === String(selectedId)
+      (x) => x.id === selectedId
     );
-    
     if (kARDetails.length === 0) {
       return;
     }
-  
-    const karInfoList = kARDetails[0]?.karsInfo || [];
+
+    const karInfoList = kARDetails[0]?.karsInfo || []; // Use optional chaining and default empty array
     karInfoList.sort((a, b) => b.id - a.id);
-      
-    // Preserve checkbox state from karsByHsIdList
-    const updatedKarInfoList = karInfoList.map((kar) => {
-      const matchingKar = this.state.karsByHsIdList.find((k) => {
-        const versionAndKarIdArr = k.versionUniqueKarId.split("|");
-        return kar.karId === versionAndKarIdArr[0] && kar.karVersion === versionAndKarIdArr[1];
+
+    for (let i = 0; i < karsByHsIdList.length; i++) {
+      const versionAndKarIdArr =
+        karsByHsIdList[i].versionUniqueKarId.split("|");
+
+      karInfoList.forEach((x) => {
+        if (
+          x.karId === versionAndKarIdArr[0] &&
+          x.karVersion === versionAndKarIdArr[1]
+        ) {
+          x["isActive"] = karsByHsIdList[i].isActive;
+          x["subscriptionsEnabled"] = karsByHsIdList[i].subscriptionsEnabled;
+          x["covidOnly"] = karsByHsIdList[i].covidOnly;
+          x["outputFormat"] = karsByHsIdList[i].outputFormat;
+        }
       });
-  
-      return matchingKar
-        ? { ...kar, ...matchingKar } // Merge saved state
-        : kar;
-    });
-    
+    }
+
     await this.setState({
       karFhirServerURL: selectedId,
       isKarFhirServerURLSelected: true,
-      selectedKARDetails: updatedKarInfoList, // Use updated list with preserved state
+      selectedKARDetails: karInfoList,
     });
   }
 
@@ -414,7 +441,7 @@ class HealthCareSettings extends Component {
       rowData["isChanged"] = true;
     }
 
-    // eslint-disable-next-line 
+    // eslint-disable-next-line
     this.state.selectedKARDetails.filter((x) => {
       if (x.id === rowData.id && rowData.isChanged) {
         x = rowData;
@@ -450,7 +477,8 @@ class HealthCareSettings extends Component {
     const healthCareSettings = {
       authType: this.state.authType,
       clientId:
-        (this.state.authType === "System" || this.state.authType === "SofBackend") &&
+        (this.state.authType === "System" ||
+          this.state.authType === "SofBackend") &&
         this.state.clientId
           ? this.state.clientId
           : this.state.username,
@@ -563,7 +591,7 @@ class HealthCareSettings extends Component {
       orgName: this.state.orgName ? this.state.orgName : null,
       orgIdSystem: this.state.orgIdSystem ? this.state.orgIdSystem : null,
       orgId: this.state.orgId ? this.state.orgId : null,
-      // eslint-disable-next-line 
+      // eslint-disable-next-line
       assigningAuthorityId: this.state.assigningAuthorityId
         ? this.state.assigningAuthorityId
         : null,
@@ -593,7 +621,7 @@ class HealthCareSettings extends Component {
           ? this.state.offHoursTimezone
           : null,
     };
-  
+
     // Determine request method (PUT vs POST)
     if (!this.addNewHealthCare && this.selectedHealthCareSettings) {
       healthCareSettings["id"] = this.selectedHealthCareSettings.id;
@@ -601,7 +629,7 @@ class HealthCareSettings extends Component {
     } else {
       requestMethod = "POST";
     }
-    
+
     axiosInstance({
       method: requestMethod,
       url: "/api/healthcareSettings",
@@ -666,41 +694,58 @@ class HealthCareSettings extends Component {
       });
   }
 
-
-
-  async saveKARSWithHealthCareSettings(hcs) {
-    try {
-      const kars = this.state.selectedKARDetails;
-      const updatedRows = kars.filter((x) => x.isChanged === true);
-  
-      const hsKARStatus = updatedRows.map((row) => ({
+  saveKARSWithHealthCareSettings(hcs) {
+    const kars = this.state.selectedKARDetails;
+    const updatedRows = kars.filter((x) => {
+      return x.isChanged === true;
+    });
+    const hsKARStatus = [];
+    for (var i = 0; i < updatedRows.length; i++) {
+      const karWithHsObj = {
         hsId: this.selectedHealthCareSettings.id,
-        karId: row.karId,
-        karVersion: row.karVersion,
-        versionUniqueKarId: `${row.karId}|${row.karVersion}`,
-        isActive: row.isActive || false,
-        subscriptionsEnabled: row.subscriptionsEnabled || false,
-        covidOnly: row.covidOnly || false,
-        outputFormat: row.outputFormat,
-      }));
-  
-      const response = await axiosInstance.post("/api/addKARStatus/", hsKARStatus);
-  
-      if (response.status === 200) {
-        this.setState({ isSaved: true });
-        this.openHealthCareSettingsList();
-      }
-    } catch (error) {
-      toast.error("Error in Saving the Knowledge Artifacts Status", {
-        position: "bottom-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-      });
+        karId: updatedRows[i].karId,
+        karVersion: updatedRows[i].karVersion,
+        versionUniqueKarId:
+          updatedRows[i].karId + "|" + updatedRows[i].karVersion,
+        isActive: updatedRows[i].isActive ? updatedRows[i].isActive : false,
+        subscriptionsEnabled: updatedRows[i].subscriptionsEnabled
+          ? updatedRows[i].subscriptionsEnabled
+          : false,
+        covidOnly: updatedRows[i].covidOnly ? updatedRows[i].covidOnly : false,
+        outputFormat: updatedRows[i].outputFormat,
+      };
+      hsKARStatus.push(karWithHsObj);
     }
+    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/addKARStatus/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(hsKARStatus),
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          this.setState({
+            isSaved: true,
+          });
+          return response.json();
+        } else {
+          // const errorMessage = response.json();
+          toast.error("Error in Saving the Knowledge Artifacts Status", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          });
+          return;
+        }
+      })
+      .then((result) => {
+        this.openHealthCareSettingsList();
+      });
   }
 
   render() {
@@ -871,7 +916,7 @@ class HealthCareSettings extends Component {
                               }
                             />
                             <Form.Control.Feedback type="invalid">
-                              Please provide a Username.{" "}
+                              Please provide a Username.
                             </Form.Control.Feedback>
                           </Col>
                         </Form.Group>
@@ -889,11 +934,8 @@ class HealthCareSettings extends Component {
                               type="text"
                               placeholder="Client Secret"
                               name="clientSecret"
-                              required={
-                                this.state.launchType === "systemLaunch"
-                                  ? true
-                                  : false
-                              }
+                              required={this.state.authType === "System"
+                          }
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.clientSecret || ""}
                               isInvalid={
@@ -1004,6 +1046,7 @@ class HealthCareSettings extends Component {
                             type="text"
                             placeholder="Token Endpoint"
                             name="tokenEndpoint"
+                            required
                             onChange={(e) => this.handleChange(e)}
                             value={this.state.tokenEndpoint || ""}
                             isInvalid={
@@ -1527,31 +1570,32 @@ class HealthCareSettings extends Component {
                             <div>
                               <Form.Group as={Row} controlId="imapUrl">
                                 <Form.Label column sm={2}>
-                                  IMAP URL:
+                                  {" "}
+                                  IMAP URL:{" "}
                                 </Form.Label>
                                 <Col sm={10}>
                                   <Form.Control
                                     type="text"
                                     name="imapUrl"
                                     required={
-                                      this.state.readMessagesType === "imap"
-                                        ? true
-                                        : false
-                                    }
+                                      this.state.readMessageType === "imap"
+                                    } // Fix here
                                     placeholder="IMAP URL"
                                     onChange={(e) => this.handleChange(e)}
                                     value={this.state.imapUrl || ""}
                                     isInvalid={
                                       this.state.isValidated &&
-                                      (this.state.imapUrl === "" ||
-                                        this.state.imapUrl === undefined)
+                                      this.state.readMessageType === "imap" &&
+                                      (!this.state.imapUrl ||
+                                        this.state.imapUrl.trim() === "")
                                     }
                                   />
                                   <Form.Control.Feedback type="invalid">
-                                    Please provide a IMAP URL.
+                                    Please provide an IMAP URL.
                                   </Form.Control.Feedback>
                                 </Col>
                               </Form.Group>
+
                               <Form.Group as={Row} controlId="imapPort">
                                 <Form.Label column sm={2}>
                                   IMAP Port:
@@ -1561,21 +1605,20 @@ class HealthCareSettings extends Component {
                                     type="text"
                                     name="imapPort"
                                     required={
-                                      this.state.directType === "imap"
-                                        ? true
-                                        : false
+                                      this.state.readMessageType === "imap"
                                     }
                                     placeholder="IMAP Port"
                                     onChange={(e) => this.handleChange(e)}
                                     value={this.state.imapPort || ""}
                                     isInvalid={
                                       this.state.isValidated &&
-                                      (this.state.imapPort === "" ||
-                                        this.state.imapPort === undefined)
+                                      this.state.readMessageType === "imap" &&
+                                      (!this.state.imapPort ||
+                                        this.state.imapPort.trim() === "")
                                     }
                                   />
                                   <Form.Control.Feedback type="invalid">
-                                    Please provide a IMAP Port.
+                                    Please provide an IMAP Port.
                                   </Form.Control.Feedback>
                                 </Col>
                               </Form.Group>
@@ -1703,17 +1746,16 @@ class HealthCareSettings extends Component {
                                     type="text"
                                     name="pop3Url"
                                     required={
-                                      this.state.readMessagesType === "pop3"
-                                        ? true
-                                        : false
+                                      this.state.readMessageType === "pop3"
                                     }
                                     placeholder="POP3 URL"
                                     onChange={(e) => this.handleChange(e)}
                                     value={this.state.pop3Url || ""}
                                     isInvalid={
                                       this.state.isValidated &&
-                                      (this.state.pop3Url === "" ||
-                                        this.state.pop3Url === undefined)
+                                      this.state.readMessageType === "pop3" &&
+                                      (!this.state.pop3Url ||
+                                        this.state.pop3Url.trim() === "")
                                     }
                                   />
                                   <Form.Control.Feedback type="invalid">
@@ -1730,17 +1772,16 @@ class HealthCareSettings extends Component {
                                     type="text"
                                     name="pop3Port"
                                     required={
-                                      this.state.directType === "pop3"
-                                        ? true
-                                        : false
+                                      this.state.readMessageType === "pop3"
                                     }
                                     placeholder="POP3 Port"
                                     onChange={(e) => this.handleChange(e)}
                                     value={this.state.pop3Port || ""}
                                     isInvalid={
                                       this.state.isValidated &&
-                                      (this.state.pop3Port === "" ||
-                                        this.state.pop3Port === undefined)
+                                      this.state.readMessageType === "pop3" &&
+                                      (!this.state.pop3Port ||
+                                        this.state.pop3Port.trim() === "")
                                     }
                                   />
                                   <Form.Control.Feedback type="invalid">

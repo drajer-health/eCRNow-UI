@@ -41,38 +41,26 @@ class KAR extends Component {
     this.props.navigate("/healthCareSettings");
   }
 
-  getKARs() {
-    fetch(this.state.fhirServerURL + "/PlanDefinition/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        } else {
-          // const errorMessage = response.json();
-          toast.error("Error in fetching the PlanDefinitions", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-          return;
-        }
-      })
-      .then((result) => {
-        if (result) {
-          this.setState({
-            karRetrieved: true,
-          });
-          this.renderKARTable(result);
-        }
+
+  async getKARs() {
+    try {
+      const response = await axiosInstance.get(`${this.state.fhirServerURL}/PlanDefinition/`);
+  
+      if (response.status === 200) {
+        this.setState({ karRetrieved: true });
+        this.renderKARTable(response.data);
+      }
+    } catch (error) {
+      toast.error("Error in fetching the PlanDefinitions", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+    }
   }
 
   renderKARTable(bundle) {

@@ -193,71 +193,48 @@ class HealthCareSettings extends Component {
       this.openHealthCareSettingsList.bind(this);
     this.openKAR = this.openKAR.bind(this);
   }
-  getKARs() {
-    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/kars/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        } else {
-          toast.error("Error in fetching the KARs", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-          });
-          return;
-        }
-      })
-      .then((result) => {
-        if (result) {
-          this.setState({
-            karFhirServerURLList: result,
-          });
-        }
+  async getKARs() {
+    try {
+      const response = await axiosInstance.get("/api/kars/");
+  
+      if (response.status === 200) {
+        this.setState({
+          karFhirServerURLList: response.data || [],
+        });
+      }
+    } catch (error) {
+      toast.error("Error in fetching the KARs", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+    }
   }
 
-  getKARSByHsId(hsId) {
-    fetch(
-      process.env.REACT_APP_ECR_BASE_URL + "/api/karStatusByHsId?hsId=" + hsId,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+  async getKARSByHsId(hsId) {
+    try {
+      const response = await axiosInstance.get(`/api/karStatusByHsId?hsId=${hsId}`);
+  
+      if (response.status === 200) {
+        this.setState({
+          karsByHsIdList: response.data || [],
+        });
       }
-    )
-      .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        } else {
-          // const errorMessage = response.json();
-          toast.error("Error in fetching the KARs By HsId", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-          return;
-        }
-      })
-      .then((result) => {
-        if (result) {
-          this.setState({
-            karsByHsIdList: result,
-          });
-        }
+    } catch (error) {
+      toast.error("Error in fetching the KARs By HsId", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+    }
   }
 
   isEmpty(obj) {
@@ -694,58 +671,39 @@ class HealthCareSettings extends Component {
       });
   }
 
-  saveKARSWithHealthCareSettings(hcs) {
-    const kars = this.state.selectedKARDetails;
-    const updatedRows = kars.filter((x) => {
-      return x.isChanged === true;
-    });
-    const hsKARStatus = [];
-    for (var i = 0; i < updatedRows.length; i++) {
-      const karWithHsObj = {
+  async saveKARSWithHealthCareSettings(hcs) {
+    try {
+      const kars = this.state.selectedKARDetails;
+      const updatedRows = kars.filter((x) => x.isChanged === true);
+  
+      const hsKARStatus = updatedRows.map((row) => ({
         hsId: this.selectedHealthCareSettings.id,
-        karId: updatedRows[i].karId,
-        karVersion: updatedRows[i].karVersion,
-        versionUniqueKarId:
-          updatedRows[i].karId + "|" + updatedRows[i].karVersion,
-        isActive: updatedRows[i].isActive ? updatedRows[i].isActive : false,
-        subscriptionsEnabled: updatedRows[i].subscriptionsEnabled
-          ? updatedRows[i].subscriptionsEnabled
-          : false,
-        covidOnly: updatedRows[i].covidOnly ? updatedRows[i].covidOnly : false,
-        outputFormat: updatedRows[i].outputFormat,
-      };
-      hsKARStatus.push(karWithHsObj);
-    }
-    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/addKARStatus/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(hsKARStatus),
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          this.setState({
-            isSaved: true,
-          });
-          return response.json();
-        } else {
-          // const errorMessage = response.json();
-          toast.error("Error in Saving the Knowledge Artifacts Status", {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-          return;
-        }
-      })
-      .then((result) => {
+        karId: row.karId,
+        karVersion: row.karVersion,
+        versionUniqueKarId: `${row.karId}|${row.karVersion}`,
+        isActive: row.isActive || false,
+        subscriptionsEnabled: row.subscriptionsEnabled || false,
+        covidOnly: row.covidOnly || false,
+        outputFormat: row.outputFormat,
+      }));
+  
+      const response = await axiosInstance.post("/api/addKARStatus/", hsKARStatus);
+  
+      if (response.status === 200) {
+        this.setState({ isSaved: true });
         this.openHealthCareSettingsList();
+      }
+    } catch (error) {
+      toast.error("Error in Saving the Knowledge Artifacts Status", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+    }
   }
 
   render() {

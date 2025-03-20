@@ -334,40 +334,40 @@ class HealthCareSettings extends Component {
     });
   }
 
-  async handleKARChange(e) {
-    const karsByHsIdList = this.state.karsByHsIdList;
+  async handleKARChange(e) {  
     const selectedId = e.target.value;
-    let kARDetails = this.state.karFhirServerURLList.filter(
-      (x) => x.id === selectedId
-    );
-    if (kARDetails.length === 0) {
+  
+    if (!this.state.karFhirServerURLList) {
       return;
     }
 
-    const karInfoList = kARDetails[0]?.karsInfo || []; // Use optional chaining and default empty array
-    karInfoList.sort((a, b) => b.id - a.id);
-
-    for (let i = 0; i < karsByHsIdList.length; i++) {
-      const versionAndKarIdArr =
-        karsByHsIdList[i].versionUniqueKarId.split("|");
-
-      karInfoList.forEach((x) => {
-        if (
-          x.karId === versionAndKarIdArr[0] &&
-          x.karVersion === versionAndKarIdArr[1]
-        ) {
-          x["isActive"] = karsByHsIdList[i].isActive;
-          x["subscriptionsEnabled"] = karsByHsIdList[i].subscriptionsEnabled;
-          x["covidOnly"] = karsByHsIdList[i].covidOnly;
-          x["outputFormat"] = karsByHsIdList[i].outputFormat;
-        }
-      });
+    let kARDetails = this.state.karFhirServerURLList.filter(
+      (x) => String(x.id) === String(selectedId)
+    );
+    
+    if (kARDetails.length === 0) {
+      return;
     }
-
+  
+    const karInfoList = kARDetails[0]?.karsInfo || [];
+    karInfoList.sort((a, b) => b.id - a.id);
+      
+    // Preserve checkbox state from karsByHsIdList
+    const updatedKarInfoList = karInfoList.map((kar) => {
+      const matchingKar = this.state.karsByHsIdList.find((k) => {
+        const versionAndKarIdArr = k.versionUniqueKarId.split("|");
+        return kar.karId === versionAndKarIdArr[0] && kar.karVersion === versionAndKarIdArr[1];
+      });
+  
+      return matchingKar
+        ? { ...kar, ...matchingKar } // Merge saved state
+        : kar;
+    });
+    
     await this.setState({
       karFhirServerURL: selectedId,
       isKarFhirServerURLSelected: true,
-      selectedKARDetails: karInfoList,
+      selectedKARDetails: updatedKarInfoList, // Use updated list with preserved state
     });
   }
 

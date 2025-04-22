@@ -350,11 +350,7 @@ class PublicHealthAuthority extends Component {
                             type="text"
                             placeholder="ClientId"
                             name="clientId"
-                            required={
-                              this.state.authType !== "UserNamePwd"
-                                ? true
-                                : false
-                            }
+                            required={true} 
                             onChange={(e) => this.handleChange(e)}
                             value={this.state.clientId || ""}
                             isInvalid={
@@ -383,9 +379,7 @@ class PublicHealthAuthority extends Component {
                               placeholder="Client Secret"
                               name="clientSecret"
                               required={
-                                this.state.authType !== "UserNamePwd"
-                                  ? true
-                                  : false
+                                this.state.authType !== "SofProvider"
                               }
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.clientSecret || ""}

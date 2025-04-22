@@ -127,6 +127,11 @@ class HealthCareSettings extends Component {
       this.state.smtpUrl = this.selectedHealthCareSettings.smtpUrl;
       this.state.smtpAuthEnabled =
         this.selectedHealthCareSettings.smtpAuthEnabled;
+      this.state.debugEnabled = this.selectedHealthCareSettings.debugEnabled;
+      this.state.imapAuthEnabled =
+        this.selectedHealthCareSettings.imapAuthEnabled;
+      this.state.imapSslEnabled =
+        this.selectedHealthCareSettings.imapSslEnabled;
       this.state.smtpSslEnabled =
         this.selectedHealthCareSettings.smtpSslEnabled;
       this.state.directTlsVersion =
@@ -188,7 +193,6 @@ class HealthCareSettings extends Component {
       this.openHealthCareSettingsList.bind(this);
     this.openKAR = this.openKAR.bind(this);
   }
-  
   async getKARs() {
     try {
       const response = await axiosInstance.get("/api/kars/");
@@ -284,11 +288,11 @@ class HealthCareSettings extends Component {
 
   handleSubmitReportToChange(e) {
     if (e.target.value === "pha") {
-      // eslint-disable-next-line 
+      // eslint-disable-next-line
       this.state.ttpUrl = "";
     }
     if (e.target.value === "ttp") {
-      // eslint-disable-next-line 
+      // eslint-disable-next-line
       this.state.ttpUrl = "";
     }
     this.setState({
@@ -414,7 +418,7 @@ class HealthCareSettings extends Component {
       rowData["isChanged"] = true;
     }
 
-    // eslint-disable-next-line 
+    // eslint-disable-next-line
     this.state.selectedKARDetails.filter((x) => {
       if (x.id === rowData.id && rowData.isChanged) {
         x = rowData;
@@ -450,7 +454,8 @@ class HealthCareSettings extends Component {
     const healthCareSettings = {
       authType: this.state.authType,
       clientId:
-        (this.state.authType === "System" || this.state.authType === "SofBackend") &&
+        (this.state.authType === "System" ||
+          this.state.authType === "SofBackend") &&
         this.state.clientId
           ? this.state.clientId
           : this.state.username,
@@ -563,7 +568,7 @@ class HealthCareSettings extends Component {
       orgName: this.state.orgName ? this.state.orgName : null,
       orgIdSystem: this.state.orgIdSystem ? this.state.orgIdSystem : null,
       orgId: this.state.orgId ? this.state.orgId : null,
-      // eslint-disable-next-line 
+      // eslint-disable-next-line
       assigningAuthorityId: this.state.assigningAuthorityId
         ? this.state.assigningAuthorityId
         : null,
@@ -593,7 +598,7 @@ class HealthCareSettings extends Component {
           ? this.state.offHoursTimezone
           : null,
     };
-  
+
     // Determine request method (PUT vs POST)
     if (!this.addNewHealthCare && this.selectedHealthCareSettings) {
       healthCareSettings["id"] = this.selectedHealthCareSettings.id;
@@ -601,7 +606,7 @@ class HealthCareSettings extends Component {
     } else {
       requestMethod = "POST";
     }
-    
+
     axiosInstance({
       method: requestMethod,
       url: "/api/healthcareSettings",
@@ -665,8 +670,6 @@ class HealthCareSettings extends Component {
         });
       });
   }
-
-
 
   async saveKARSWithHealthCareSettings(hcs) {
     try {
@@ -871,7 +874,7 @@ class HealthCareSettings extends Component {
                               }
                             />
                             <Form.Control.Feedback type="invalid">
-                              Please provide a Username.{" "}
+                              Please provide a Username.
                             </Form.Control.Feedback>
                           </Col>
                         </Form.Group>
@@ -889,11 +892,8 @@ class HealthCareSettings extends Component {
                               type="text"
                               placeholder="Client Secret"
                               name="clientSecret"
-                              required={
-                                this.state.launchType === "systemLaunch"
-                                  ? true
-                                  : false
-                              }
+                              required={this.state.authType === "System"
+                          }
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.clientSecret || ""}
                               isInvalid={
@@ -1004,6 +1004,7 @@ class HealthCareSettings extends Component {
                             type="text"
                             placeholder="Token Endpoint"
                             name="tokenEndpoint"
+                            required
                             onChange={(e) => this.handleChange(e)}
                             value={this.state.tokenEndpoint || ""}
                             isInvalid={
@@ -1527,31 +1528,32 @@ class HealthCareSettings extends Component {
                             <div>
                               <Form.Group as={Row} controlId="imapUrl">
                                 <Form.Label column sm={2}>
-                                  IMAP URL:
+                                  {" "}
+                                  IMAP URL:{" "}
                                 </Form.Label>
                                 <Col sm={10}>
                                   <Form.Control
                                     type="text"
                                     name="imapUrl"
                                     required={
-                                      this.state.readMessagesType === "imap"
-                                        ? true
-                                        : false
-                                    }
+                                      this.state.readMessageType === "imap"
+                                    } // Fix here
                                     placeholder="IMAP URL"
                                     onChange={(e) => this.handleChange(e)}
                                     value={this.state.imapUrl || ""}
                                     isInvalid={
                                       this.state.isValidated &&
-                                      (this.state.imapUrl === "" ||
-                                        this.state.imapUrl === undefined)
+                                      this.state.readMessageType === "imap" &&
+                                      (!this.state.imapUrl ||
+                                        this.state.imapUrl.trim() === "")
                                     }
                                   />
                                   <Form.Control.Feedback type="invalid">
-                                    Please provide a IMAP URL.
+                                    Please provide an IMAP URL.
                                   </Form.Control.Feedback>
                                 </Col>
                               </Form.Group>
+
                               <Form.Group as={Row} controlId="imapPort">
                                 <Form.Label column sm={2}>
                                   IMAP Port:
@@ -1561,21 +1563,20 @@ class HealthCareSettings extends Component {
                                     type="text"
                                     name="imapPort"
                                     required={
-                                      this.state.directType === "imap"
-                                        ? true
-                                        : false
+                                      this.state.readMessageType === "imap"
                                     }
                                     placeholder="IMAP Port"
                                     onChange={(e) => this.handleChange(e)}
                                     value={this.state.imapPort || ""}
                                     isInvalid={
                                       this.state.isValidated &&
-                                      (this.state.imapPort === "" ||
-                                        this.state.imapPort === undefined)
+                                      this.state.readMessageType === "imap" &&
+                                      (!this.state.imapPort ||
+                                        this.state.imapPort.trim() === "")
                                     }
                                   />
                                   <Form.Control.Feedback type="invalid">
-                                    Please provide a IMAP Port.
+                                    Please provide an IMAP Port.
                                   </Form.Control.Feedback>
                                 </Col>
                               </Form.Group>
@@ -1703,17 +1704,16 @@ class HealthCareSettings extends Component {
                                     type="text"
                                     name="pop3Url"
                                     required={
-                                      this.state.readMessagesType === "pop3"
-                                        ? true
-                                        : false
+                                      this.state.readMessageType === "pop3"
                                     }
                                     placeholder="POP3 URL"
                                     onChange={(e) => this.handleChange(e)}
                                     value={this.state.pop3Url || ""}
                                     isInvalid={
                                       this.state.isValidated &&
-                                      (this.state.pop3Url === "" ||
-                                        this.state.pop3Url === undefined)
+                                      this.state.readMessageType === "pop3" &&
+                                      (!this.state.pop3Url ||
+                                        this.state.pop3Url.trim() === "")
                                     }
                                   />
                                   <Form.Control.Feedback type="invalid">
@@ -1730,17 +1730,16 @@ class HealthCareSettings extends Component {
                                     type="text"
                                     name="pop3Port"
                                     required={
-                                      this.state.directType === "pop3"
-                                        ? true
-                                        : false
+                                      this.state.readMessageType === "pop3"
                                     }
                                     placeholder="POP3 Port"
                                     onChange={(e) => this.handleChange(e)}
                                     value={this.state.pop3Port || ""}
                                     isInvalid={
                                       this.state.isValidated &&
-                                      (this.state.pop3Port === "" ||
-                                        this.state.pop3Port === undefined)
+                                      this.state.readMessageType === "pop3" &&
+                                      (!this.state.pop3Port ||
+                                        this.state.pop3Port.trim() === "")
                                     }
                                   />
                                   <Form.Control.Feedback type="invalid">

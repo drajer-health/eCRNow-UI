@@ -104,6 +104,9 @@ export default function LoginPage({ setAuthorized }) {
   
   function handleUsernameChange(e) {
     const value = e.target.value;
+    if (value.startsWith(" ")) {
+      return;
+    }
     setUsername(value);
     setLoginError(""); 
 
@@ -121,6 +124,9 @@ export default function LoginPage({ setAuthorized }) {
 
   function handlePasswordChange(e) {
     const value = e.target.value;
+    if (value.startsWith(" ")) {
+      return;
+    }
     setPassword(value);
     setLoginError(""); 
 

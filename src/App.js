@@ -16,7 +16,6 @@ import "react-toastify/dist/ReactToastify.css";
 import Loginpage from "./Views/LoginPage/Loginpage";
 import Cookies from "js-cookie";
 import Logout from "./Components/Logout/Logout";
-import { performLogout } from "./Components/Logout/Logout";
 
 
 class App extends Component {
@@ -93,15 +92,7 @@ class App extends Component {
   async componentDidMount() {
     const token = Cookies.get("jwt_token");
     const bypassAuth = process.env.REACT_APP_BYPASS_AUTH !== "false";
-    const isFirstLoad = !sessionStorage.getItem("sessionActive");
-  
-    if (isFirstLoad && !bypassAuth) {
-      performLogout();
-      sessionStorage.setItem("sessionActive", "true");
-      this.setState({ loading: false });
-      return;
-    }
-  
+    
     if (token) {
       this.setAuthorized(true);
     } else {
@@ -119,27 +110,6 @@ class App extends Component {
       }
     }
   
-    window.addEventListener("storage", this.handleTokenChange); // Listen for token removal across tabs
-  }
-  
-  
-  handleTokenChange = (event) => {    // Handle token removal in all tabs
-    if (event.key === "jwt_token" && !event.newValue) {
-      this.setAuthorized(false);
-      window.location.href = "/login";
-    }
-  };
-  
-  handleApiError = (error) => {    // Handle API failures due to token expiration
-    if (error.response && error.response.status === 401) {
-      console.log("Unauthorized request! Logging out...");
-      performLogout();
-      window.location.href = "/login";
-    }
-  };
-  
-  componentWillUnmount() {
-    window.removeEventListener("storage", this.handleTokenChange);     // Remove event listener on unmount
   }
   
 

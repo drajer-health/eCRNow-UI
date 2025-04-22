@@ -1,116 +1,275 @@
-import React, { Component } from 'react';
-import './App.css';
-import { Container } from 'react-bootstrap';
-import Header from './Layout/Header/Header';
-import Authorizations from './Views/Authorizations/Authorizations';
-import ClientDetails from './Views/ClientDetails/ClientDetails';
-import ClientDetailsList from './Views/ClientDetailsList/ClientDetailsList';
-import HealthCareSettings from './Views/HealthCareSettings/HealthCareSettings';
-import HealthCareSettingsList from './Views/HealthCareSettingsList/HealthCareSettingsList';
-import PublicHealthAuthority from './Views/PublicHealthAuthority/PublicHealthAuthority';
-import PublicHealthAuthorityList from './Views/PublicHealthAuthorityList/PublicHealthAuthorityList';
-import KAR from './Views/KAR/KAR';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import ReactNotification from 'react-notifications-component';
+import React, { Component } from "react";
+import "./App.css";
+import { Container } from "react-bootstrap";
+import Header from "./Layout/Header/Header";
+import Authorizations from "./Views/Authorizations/Authorizations";
+import ClientDetails from "./Views/ClientDetails/ClientDetails";
+import ClientDetailsList from "./Views/ClientDetailsList/ClientDetailsList";
+import HealthCareSettings from "./Views/HealthCareSettings/HealthCareSettings";
+import HealthCareSettingsList from "./Views/HealthCareSettingsList/HealthCareSettingsList";
+import PublicHealthAuthority from "./Views/PublicHealthAuthority/PublicHealthAuthority";
+import PublicHealthAuthorityList from "./Views/PublicHealthAuthorityList/PublicHealthAuthorityList";
+import KAR from "./Views/KAR/KAR";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Loginpage from "./Views/LoginPage/Loginpage";
+import Cookies from "js-cookie";
+import Logout from "./Components/Logout/Logout";
+
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
-      displayJSONObject: false,
-      isAuthorized: false,
+      isAuthorize: false,
+      authorize: false,
+      loading: true,
+      bypassAuth: false,
       selectedClientDetails: {},
-      selectedHealthCareSettings:{},
-      selectedPublicHealthAuthority:{},
-      addNewHealthCare:true
+      selectedHealthCareSettings: {},
+      selectedPublicHealthAuthority: {},
+      addNewHealthCare: true,
     };
+
     this.selectedClientDetails = this.selectedClientDetails.bind(this);
-    this.selectedHealthCareSettings = this.selectedHealthCareSettings.bind(this);
+    this.selectedHealthCareSettings =
+      this.selectedHealthCareSettings.bind(this);
     this.addNew = this.addNew.bind(this);
     this.addNewHealthCare = this.addNewHealthCare.bind(this);
-    this.addNewPublicHealthAuthority = this.addNewPublicHealthAuthority.bind(this);
-    this.selectedPublicHealthAuthority = this.selectedPublicHealthAuthority.bind(this);
+    this.addNewPublicHealthAuthority =
+      this.addNewPublicHealthAuthority.bind(this);
+    this.selectedPublicHealthAuthority =
+      this.selectedPublicHealthAuthority.bind(this);
   }
 
   async selectedClientDetails(_state) {
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
-      selectedClientDetails: updatedState
+      selectedClientDetails: updatedState,
     });
   }
 
   async selectedHealthCareSettings(_state) {
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
-      selectedHealthCareSettings: updatedState
+      selectedHealthCareSettings: updatedState,
     });
   }
-
 
   async selectedPublicHealthAuthority(_state) {
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
-      selectedPublicHealthAuthority: updatedState
+      selectedPublicHealthAuthority: updatedState,
     });
   }
 
   async addNew(_state) {
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
-      addNew: updatedState
+      addNew: updatedState,
     });
   }
 
   async addNewHealthCare(_state) {
-    
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
-      addNewHealthCare: updatedState
+      addNewHealthCare: updatedState,
     });
   }
 
   async addNewPublicHealthAuthority(_state) {
-    
     const updatedState = JSON.parse(JSON.stringify(_state));
     await this.setState({
-      addPublicHealthAuthority: updatedState
+      addPublicHealthAuthority: updatedState,
     });
   }
-  render() {
+
+  setAuthorized = (value) => {
+    this.setState({ isAuthorize: value, loading: false }, () => {});
+  };
+
+  async componentDidMount() {
+    const token = Cookies.get("jwt_token");
+    const bypassAuth = process.env.REACT_APP_BYPASS_AUTH !== "false";
+    
+    if (token) {
+      this.setAuthorized(true);
+    } else {
+      try {
+        const isAuthorized = bypassAuth;
+        this.setAuthorized(isAuthorized);
+        this.setState({ authorize: isAuthorized, loading: false });
+  
+        return <Navigate to={isAuthorized ? "/home" : "/login"} replace />;
+        
+      } catch (error) {
+        console.error("Error in authorization:", error);
+        this.setAuthorized(false);
+        this.setState({ authorize: false, loading: false });
+      }
+    }
+  
+  }
+  
+
+  render() {  // While the auth status is loading, show a continuous spinner
+    if (this.state.loading) {
+      return (
+        <div className="loader-container">
+          <div className="spinner"></div>
+        </div>
+      );
+    }
+
     return (
       <div className="App">
-        <Header />
+        <Header bypassAuth={this.state.authorize} />
         <div className="main">
           <Container>
-            <Router basename={process.env.REACT_APP_ROUTER_BASE || ''}>
-              <Switch>
-                <Route exact path="/" render={props => (<Authorizations {...props} authData={this.state}></Authorizations>)}></Route>
-              </Switch>
-              <Switch>
-                <Route exact path="/clientDetails" render={props => (<ClientDetails {...props} selectedClientDetails={this.state.selectedClientDetails} addNew={this.state.addNew}></ClientDetails>)}></Route>
-              </Switch>
-              <Switch>
-                <Route exact path="/clientDetailsList" render={props => (<ClientDetailsList {...props} selectedClientDetails={this.selectedClientDetails} addNew={this.addNew}></ClientDetailsList>)}></Route>
-              </Switch>
-              <Switch>
-                <Route exact path="/healthCareSettings" render={props => (<HealthCareSettings {...props} selectedHealthCareSettings={this.state.selectedHealthCareSettings} addNewHealthCare={this.state.addNewHealthCare}></HealthCareSettings>)}></Route>
-              </Switch>
-              <Switch>
-                <Route exact path="/publicHealthAuthority" render={props => (<PublicHealthAuthority {...props} selectedPublicHealthAuthority={this.state.selectedPublicHealthAuthority} addNewHealthAuthority={this.state.addNewPublicHealthAuthority}></PublicHealthAuthority>)}></Route>
-              </Switch>
-              <Switch>
-                <Route exact path="/publicHealthAuthorityList" render={props => (<PublicHealthAuthorityList {...props} selectedPublicHealthAuthority={this.selectedPublicHealthAuthority} addNewPublicHealthAuthority={this.addNewPublicHealthAuthority} ></PublicHealthAuthorityList>)}></Route>
-              </Switch>
-              <Switch>
-                <Route exact path="/healthCareSettingsList" render={props => (<HealthCareSettingsList {...props} selectedHealthCareSettings={this.selectedHealthCareSettings} addNewHealthCare={this.addNewHealthCare}></HealthCareSettingsList>)}></Route>
-              </Switch>
-              <Switch>
-                <Route exact path="/kar" render={props => (<KAR {...props} ></KAR>)}></Route>
-              </Switch>
-            </Router>
+            <Routes>
+              <Route path="/logout" element={<Logout />} />
+              {/* If user is authorized, navigating to /login will redirect them to /home */}
+              <Route
+                path="/login"
+                element={
+                  this.state.isAuthorize ? (
+                    <Navigate to="/home" replace />
+                  ) : (
+                    <Loginpage
+                      setAuthorized={this.setAuthorized}
+                      setIsLoginPageUser={this.props.setIsLoginPageUser}
+                    />
+                  )
+                }
+              />
+
+              {/* Protected Routes */}
+              <Route
+                path="/home"
+                element={
+                  this.state.isAuthorize ? (
+                    <Authorizations authData={this.state} />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/clientDetails"
+                element={
+                  this.state.isAuthorize ? (
+                    <ClientDetails
+                      selectedClientDetails={this.state.selectedClientDetails}
+                      addNew={this.state.addNew}
+                    />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/clientDetailsList"
+                element={
+                  this.state.isAuthorize ? (
+                    <ClientDetailsList
+                      selectedClientDetails={this.selectedClientDetails}
+                      addNew={this.addNew}
+                    />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/healthCareSettings"
+                element={
+                  this.state.isAuthorize ? (
+                    <HealthCareSettings
+                      selectedHealthCareSettings={
+                        this.state.selectedHealthCareSettings
+                      }
+                      addNewHealthCare={this.state.addNewHealthCare}
+                    />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/healthCareSettingsList"
+                element={
+                  this.state.isAuthorize ? (
+                    <HealthCareSettingsList
+                      selectedHealthCareSettings={
+                        this.selectedHealthCareSettings
+                      }
+                      addNewHealthCare={this.addNewHealthCare}
+                    />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/publicHealthAuthority"
+                element={
+                  this.state.isAuthorize ? (
+                    <PublicHealthAuthority
+                      selectedPublicHealthAuthority={
+                        this.state.selectedPublicHealthAuthority
+                      }
+                      addNewHealthAuthority={
+                        this.state.addNewPublicHealthAuthority
+                      }
+                    />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/publicHealthAuthorityList"
+                element={
+                  this.state.isAuthorize ? (
+                    <PublicHealthAuthorityList
+                      selectedPublicHealthAuthority={
+                        this.selectedPublicHealthAuthority
+                      }
+                      addNewPublicHealthAuthority={
+                        this.addNewPublicHealthAuthority
+                      }
+                    />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/kar"
+                element={
+                  this.state.isAuthorize ? (
+                    <KAR />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+
+              {/* Catch-all: redirect to appropriate route */}
+              <Route
+                path="*"
+                element={
+                  <Navigate
+                    to={this.state.isAuthorized ? "/home" : "/login"}
+                    replace
+                  />
+                }
+              />
+            </Routes>
           </Container>
         </div>
-        <ReactNotification />
+        <ToastContainer />
       </div>
     );
   }

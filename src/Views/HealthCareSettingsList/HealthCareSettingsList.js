@@ -8,8 +8,10 @@ import {
   Tooltip,
 } from "react-bootstrap";
 import "./HealthCareSettingsList.css";
-import { store } from "react-notifications-component";
-import Icon from "@material-ui/core/Icon";
+import { toast } from 'react-toastify';
+import EditIcon from "@mui/icons-material/Edit";
+import { withRouter } from "../../withRouter";
+import axiosInstance from "../../Services/AxiosConfig";
 
 const tooltip = <Tooltip id="tooltip">Edit</Tooltip>;
 
@@ -41,51 +43,46 @@ class HealthCareSettingsList extends Component {
     return strurl;
   }
 
-  getAllHealthCareSettings() {
-    // const serviceURL = this.geturl();
-    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/healthcareSettings/", {
-      method: "GET",
-    })
-      .then((response) => {
-        
-        if (response.status !== 200) {
-          store.addNotification({
-            title: "" + response.status + "",
-            message: "Error in getting the HealthCareSettings",
-            type: "danger",
-            insert: "bottom",
-            container: "bottom-right",
-            animationIn: ["animated", "fadeIn"],
-            animationOut: ["animated", "fadeOut"],
-            dismiss: {
-              duration: 5000,
-              click: true,
-              onScreen: true,
-            },
-          });
-          return;
-        } else {
-          return response.json();
-        }
-      })
-      .then((result) => {
-        
-        this.setState({
-          details: result,
-        });
+async getAllHealthCareSettings() {
+  try {
+    const response = await axiosInstance.get("/api/healthcareSettings/");
+    if (response.status !== 200) {
+      toast.error("Error in getting the HealthCareSettings", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
-  }
+      return;
+    }
+    this.setState({ details: response?.data || [] });
 
-  openAddNewHealthCareSettings() {
+  } catch (error){
+    toast.error("Error in getting the HealthCareSettings", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      draggable: true,
+      progress: undefined,
+      theme: "colored",
+    });
+    console.error("Error:", error);
+  }
+}
+
+  openAddNewHealthCareSettings = () => {
     this.props.addNewHealthCare({ addNewHealthCare: true });
-    this.props.history.push("healthCareSettings");
-  }
+    this.props.navigate("/healthCareSettings");
+  };
 
-  editHealthCareSettings(selectedHealthCareSettings) {
-    
+  editHealthCareSettings(selectedHealthCareSettings) {    
     this.props.addNewHealthCare({ addNewHealthCare: false });
     this.props.selectedHealthCareSettings(selectedHealthCareSettings);
-    this.props.history.push("healthCareSettings");
+    this.props.navigate("/healthCareSettings");
   }
 
   render() {
@@ -121,12 +118,15 @@ class HealthCareSettingsList extends Component {
                     <td>{get.fhirServerBaseURL}</td>
                     <td>{get.authType}</td>
                     <td className="actionColumn">
-                      <OverlayTrigger placement="top" overlay={tooltip}>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={tooltip}
+                      >
                         <Button
                           className="editButton"
                           onClick={(e) => this.editHealthCareSettings(get)}
                         >
-                          <Icon>edit</Icon>
+                          <EditIcon />
                         </Button>
                       </OverlayTrigger>
                     </td>
@@ -141,4 +141,4 @@ class HealthCareSettingsList extends Component {
   }
 }
 
-export default HealthCareSettingsList;
+export default withRouter(HealthCareSettingsList);

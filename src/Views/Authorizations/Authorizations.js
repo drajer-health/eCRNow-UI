@@ -5,8 +5,7 @@ import {
   Col
 } from 'react-bootstrap';
 import './Authorizations.css';
-import { store } from 'react-notifications-component';
-
+import { toast } from "react-toastify";
 class Authorizations extends Component {
   constructor(props) {
     super(props);
@@ -43,19 +42,14 @@ class Authorizations extends Component {
         if (response.status === 200) {
           return response.json();
         } else {
-          store.addNotification({
-            title: '' + response.status + '',
-            message: 'UnAuthorized. The Server is not registered.',
-            type: 'danger',
-            insert: 'bottom',
-            container: 'bottom-right',
-            animationIn: ['animated', 'fadeIn'],
-            animationOut: ['animated', 'fadeOut'],
-            dismiss: {
-              duration: 5000,
-              click: true,
-              onScreen: true
-            }
+          toast.error("UnAuthorized. The Server is not registered.", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
           });
         }
       }).then(result => {
@@ -258,19 +252,14 @@ class Authorizations extends Component {
         if (response.status === 200) {
           return response.json();
         } else {
-          store.addNotification({
-            title: '' + response.status + '',
-            message: 'Error in Saving Launch Details.',
-            type: 'danger',
-            insert: 'bottom',
-            container: 'bottom-right',
-            animationIn: ['animated', 'fadeIn'],
-            animationOut: ['animated', 'fadeOut'],
-            dismiss: {
-              duration: 5000,
-              click: true,
-              onScreen: true
-            }
+          toast.error("Error in Saving Launch Details.", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
           });
         }
       })
@@ -279,9 +268,7 @@ class Authorizations extends Component {
       });
   }
 
-  getResourcesData() {
-    const patientData = this.getPatientData();
-    
+  getResourcesData() {    
   }
   getPatientData() {
     fetch(
@@ -297,19 +284,14 @@ class Authorizations extends Component {
         if (response.status === 200) {
           return response.json();
         } else {
-          store.addNotification({
-            title: '' + response.status + '',
-            message: 'Error in Getting Patient Details.',
-            type: 'danger',
-            insert: 'bottom',
-            container: 'bottom-right',
-            animationIn: ['animated', 'fadeIn'],
-            animationOut: ['animated', 'fadeOut'],
-            dismiss: {
-              duration: 5000,
-              click: true,
-              onScreen: true
-            }
+          toast.error("Error in Getting Patient Details.", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
           });
           return;
         }
@@ -334,19 +316,14 @@ class Authorizations extends Component {
         if (response.status === 200) {
           return response.json();
         } else {
-          store.addNotification({
-            title: '' + response.status + '',
-            message: 'Error in Getting Encounter Details.',
-            type: 'danger',
-            insert: 'bottom',
-            container: 'bottom-right',
-            animationIn: ['animated', 'fadeIn'],
-            animationOut: ['animated', 'fadeOut'],
-            dismiss: {
-              duration: 5000,
-              click: true,
-              onScreen: true
-            }
+          toast.error("Error in getting the Encounter Details", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
           });
           return;
         }

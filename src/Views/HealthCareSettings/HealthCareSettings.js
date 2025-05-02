@@ -413,10 +413,13 @@ class HealthCareSettings extends Component {
       rowData["subscriptionsEnabled"] = e.target.checked;
       rowData["isChanged"] = true;
     }
-    if (columnType === "EnableCovidReporting") {
-      rowData["covidOnly"] = e.target.checked;
-      rowData["isChanged"] = true;
-    }
+    // if (columnType === "EnableCovidReporting") {
+    //   rowData["covidOnly"] = e.target.checked;
+    //   rowData["isChanged"] = true;
+    // }
+
+    rowData["isChanged"] = true;
+    rowData["covidOnly"] = false; // Reset covidOnly to false
 
     // eslint-disable-next-line
     this.state.selectedKARDetails.filter((x) => {
@@ -2483,20 +2486,17 @@ class HealthCareSettings extends Component {
                               >
                                 <tbody>
                                   <tr>
-                                    {/* <th>PlanDefinitionId</th> */}
                                     <th>Name</th>
                                     <th>Publisher</th>
                                     <th>Version</th>
                                     <th>Activate</th>
                                     <th>Enable Subscriptions</th>
-                                    <th>Emergent Reporting</th>
                                     <th className="outputFormat">
                                       Output Format
                                     </th>
                                   </tr>
                                   {this.state.selectedKARDetails.map((get) => (
                                     <tr key={get.karId}>
-                                      {/* <td>{get.karId}</td> */}
                                       <td className="karTableName">
                                         {get.karName}
                                       </td>
@@ -2533,22 +2533,7 @@ class HealthCareSettings extends Component {
                                           className="tableCheckboxes"
                                           checked={get.subscriptionsEnabled}
                                         />
-                                      </td>
-                                      <td className="karCheckBoxes">
-                                        <Form.Check
-                                          type="checkbox"
-                                          name="covidEnabled"
-                                          onChange={(e) =>
-                                            this.handleCheckboxChange(
-                                              e,
-                                              get,
-                                              "EnableCovidReporting"
-                                            )
-                                          }
-                                          className="tableCheckboxes"
-                                          checked={get.covidOnly}
-                                        />
-                                      </td>
+                                      </td>                                   
                                       <td>
                                         <Form.Control
                                           as="select"

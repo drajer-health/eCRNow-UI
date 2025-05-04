@@ -29,6 +29,11 @@ class ClientDetails extends Component {
                 this.state.clientId = this.selectedClientDetails.clientId;
                 this.state.clientSecret = this.selectedClientDetails.clientSecret;
             }
+            if (this.selectedClientDetails.isMultiTenantSystemLaunch) {
+                this.state.launchType = 'multiTenantSystemLaunch';
+                this.state.clientId = this.selectedClientDetails.clientId;
+                this.state.clientSecret = this.selectedClientDetails.clientSecret;
+            }
             if (this.selectedClientDetails.isUserAccountLaunch) {
                 this.state.launchType = 'userAccountLaunch';
                 this.state.username = this.selectedClientDetails.clientId;
@@ -179,10 +184,11 @@ class ClientDetails extends Component {
         var clientDetails = {
             isProvider: this.state.launchType === "providerLaunch" ? true : false,
             isSystem: this.state.launchType === 'systemLaunch' ? true : false,
+            isMultiTenantSystemLaunch: this.state.launchType === 'multiTenantSystemLaunch' ?true : false,
             isUserAccountLaunch: this.state.launchType === "userAccountLaunch"? true : false,
             isMultiTenantSystemLaunch: this.state.launchType === "multiTenantSystemLaunch"? true : false,
             clientId: this.state.launchType === "userAccountLaunch"?this.state.username:this.state.clientId,
-            clientSecret: this.state.clientSecret && this.state.launchType === 'systemLaunch'  ? this.state.clientSecret : this.state.password,
+            clientSecret: this.state.clientSecret && (this.state.launchType === 'systemLaunch' || this.state.launchType === 'multiTenantSystemLaunch')  ? this.state.clientSecret : this.state.password,
             fhirServerBaseURL: this.state.fhirServerBaseURL,
             tokenURL: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
             scopes: this.state.scopes,
@@ -210,7 +216,10 @@ class ClientDetails extends Component {
             rrRestAPIUrl : this.state.rrRestAPIUrl,
             rrDocRefMimeType: this.state.rrDocRefMimeType,
             debugFhirQueryAndEicr: this.state.isLoggingEnabled ? this.state.isLoggingEnabled : false,
-            lastUpdated:new Date()
+            lastUpdated:new Date(),
+            accessToken: this.selectedClientDetails?this.selectedClientDetails.accessToken:null,
+            tokenExpiry: this.selectedClientDetails?this.selectedClientDetails.tokenExpiry:null,
+            tokenExpiryDateTime: this.selectedClientDetails?this.selectedClientDetails.tokenExpiryDateTime:null,
             // tokenIntrospectionURL: this.state.tokenIntrospectionURL ? this.state.tokenIntrospectionURL : null,
             // ehrClientId: this.state.ehrClientId ? this.state.ehrClientId : null,
             // ehrClientSecret: this.state.ehrClientSecret ? this.state.ehrClientSecret : null,
@@ -357,19 +366,25 @@ class ClientDetails extends Component {
                                     </Form.Label>
                                                 <Col sm={10}>
                                                     <Row>
-                                                        <Col sm={4}>
+                                                        <Col sm={3}>
                                                             <Form.Check type="radio" id="providerLaunch">
                                                                 <Form.Check.Input type="radio" checked={this.state.launchType === 'providerLaunch'} value="providerLaunch" name="launchType" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>Provider Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
-                                                        <Col sm={4}>
+                                                        <Col sm={3}>
                                                             <Form.Check type="radio" id="systemLaunch">
                                                                 <Form.Check.Input type="radio" checked={this.state.launchType === 'systemLaunch'} value="systemLaunch" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>System Launch</Form.Check.Label>
                                                             </Form.Check>
                                                         </Col>
-                                                        <Col sm={4}>
+                                                        <Col sm={3}>
+                                                            <Form.Check type="radio" id="multiTenantSystemLaunch">
+                                                                <Form.Check.Input type="radio" checked={this.state.launchType === 'multiTenantSystemLaunch'} value="multiTenantSystemLaunch" onChange={e => this.handleRadioChange(e)} />
+                                                                <Form.Check.Label>Multi-Tenant System Launch</Form.Check.Label>
+                                                            </Form.Check>
+                                                        </Col>
+                                                        <Col sm={3}>
                                                             <Form.Check type="radio" id="userAccountLaunch">
                                                                 <Form.Check.Input type="radio" checked={this.state.launchType === 'userAccountLaunch'} value="userAccountLaunch" onChange={e => this.handleRadioChange(e)} />
                                                                 <Form.Check.Label>Username & Password</Form.Check.Label>
@@ -378,7 +393,7 @@ class ClientDetails extends Component {
                                                     </Row>
                                                 </Col>
                                             </Form.Group>
-                                            {this.state.launchType === 'systemLaunch' || this.state.launchType === 'providerLaunch' ? (
+                                            {this.state.launchType === 'systemLaunch' || this.state.launchType === 'multiTenantSystemLaunch' || this.state.launchType === 'providerLaunch' ? (
                                             
                                             <Form.Group as={Row} controlId="formHorizontalClientId">
                                                 <Form.Label column sm={2}>
@@ -405,7 +420,7 @@ class ClientDetails extends Component {
                                             )}
                                             
 
-                                            {this.state.launchType === 'systemLaunch' ? (
+                                            {this.state.launchType === 'systemLaunch' || this.state.launchType === 'multiTenantSystemLaunch'? (
                                                 <Form.Group as={Row} controlId="formHorizontalClientSecret">
                                                     <Form.Label column sm={2}>
                                                         Client Secret:

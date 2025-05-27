@@ -35,6 +35,7 @@ class HealthCareSettings extends Component {
       selectedKARDetails: [],
       outputFormats: ["CDA_R11", "CDA_R30", "FHIR"],
       hsKARStatus: [],
+      algorithms: ['RS256', 'RS384', 'ES384']
     };
     this.outputFormatsList = {
       CDA_R11: "CDA_R11",
@@ -159,6 +160,10 @@ class HealthCareSettings extends Component {
         this.selectedHealthCareSettings.docRefMimeType;
       this.state.keystoreAlias =
         this.selectedHealthCareSettings.backendAuthKeyAlias;
+      this.state.authSignAlgorithm = 
+        this.selectedHealthCareSettings.backendAuthAlg;
+      this.state.authKid = 
+        this.selectedHealthCareSettings.backendAuthKid;
       this.state.phaUrl = this.selectedHealthCareSettings.phaUrl;
       this.state.ttpUrl = this.selectedHealthCareSettings.trustedThirdParty;
       this.state.offhoursEnabled =
@@ -542,6 +547,10 @@ class HealthCareSettings extends Component {
       backendAuthKeyAlias: this.state.keystoreAlias
         ? this.state.keystoreAlias
         : null,
+      backendAuthAlg: this.state.authSignAlgorithm
+        ? this.state.authSignAlgorithm
+        : null,
+      backendAuthKid: this.state.authKid ? this.state.authKid : null,
       username: this.state.username ? this.state.username : "",
       password: this.state.password ? this.state.password : "",
       createDocRefForResponse:
@@ -644,6 +653,9 @@ class HealthCareSettings extends Component {
             startThreshold: "",
             endThreshold: "",
             restApiUrl: "",
+            backendAuthKeyAlias: "",
+            backendAuthAlg: "",
+            backendAuthKid: ""
           });
           toast.success("Success", {
             position: "bottom-right",
@@ -1057,6 +1069,7 @@ class HealthCareSettings extends Component {
                         ""
                       )}
                       {this.state.authType === "SofBackend" ? (
+                      <>
                         <Form.Group
                           as={Row}
                           controlId="formHorizontalKeystoreAlias"
@@ -1083,7 +1096,53 @@ class HealthCareSettings extends Component {
                             </Form.Control.Feedback>
                           </Col>
                         </Form.Group>
-                      ) : (
+                        <Form.Group as={Row} controlId="authAlg">
+                          <Form.Label column sm="2">
+                            Auth Sign Algorithm:
+                          </Form.Label>
+                          <Col sm="10">
+                            <Form.Control
+                              as="select"
+                              value={this.state.authSignAlgorithm}
+                              onChange={(e) => {this.setState({authSignAlgorithm:e.target.value});
+                            }}
+                              className="select-drop-down"
+                              isInvalid={
+                                this.state.isValidated &&
+                                (this.state.authSignAlgorithm === "" ||
+                                  this.state.authSignAlgorithm === undefined)
+                              }                              
+                            >
+                              <option value="">Select Auth Sign Algorithm</option>
+                              {this.state.algorithms.map((algorithm) => (
+                                <option key={algorithm} value={algorithm}>
+                                  {algorithm}
+                                </option>
+                              ))}
+                            </Form.Control>
+                            <Form.Control.Feedback type="invalid">
+                              Please provide a Algorithm.
+                            </Form.Control.Feedback>
+                          </Col>
+                        </Form.Group>
+                        <Form.Group
+                          as={Row}
+                          controlId="formAuthKid"
+                        >
+                          <Form.Label column sm={2}>
+                            Auth Key Identifier:
+                          </Form.Label>
+                          <Col sm={10}>
+                            <Form.Control
+                              type="text"
+                              placeholder="Key Identifier (kid)"
+                              name="authKid"
+                              onChange={(e) => this.handleChange(e)}
+                              value={this.state.authKid || ""}
+                            />
+                          </Col>
+                        </Form.Group>
+                      </>) : (
                         ""
                       )}
                     </Card.Body>

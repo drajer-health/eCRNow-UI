@@ -20,6 +20,7 @@ class PublicHealthAuthority extends Component {
       validated: false,
       isValidated: false,
       isChecked: false,
+      algorithms: ['RS256', 'RS384', 'ES384']
     };
     this.selectedPublicHealthAuthority =
       this.props.selectedPublicHealthAuthority;
@@ -51,8 +52,14 @@ class PublicHealthAuthority extends Component {
       this.state.tokenEndpoint = this.selectedPublicHealthAuthority.tokenUrl;
       this.state.scopes = this.selectedPublicHealthAuthority.scopes;
       this.state.restAPIURL = this.selectedPublicHealthAuthority.restApiUrl;
+      this.state.keystoreAlias =
+        this.selectedPublicHealthAuthority.backendAuthKeyAlias;
+      this.state.authSignAlgorithm = 
+        this.selectedPublicHealthAuthority.backendAuthAlg;
+      this.state.authKid = 
+        this.selectedPublicHealthAuthority.backendAuthKid;
     } else {
-      this.state.authType = "SofProvider";
+      this.state.authType = "System";
     }
     this.state.isSaved = false;
     this.savePublicHealthAuthority = this.savePublicHealthAuthority.bind(this);
@@ -136,6 +143,11 @@ class PublicHealthAuthority extends Component {
       fhirServerBaseURL: this.state.fhirServerBaseURL,
       tokenUrl: this.state.tokenEndpoint ? this.state.tokenEndpoint : null,
       scopes: this.state.scopes,
+      backendAuthKeyAlias: this.state.keystoreAlias,
+      backendAuthAlg: this.state.authSignAlgorithm
+        ? this.state.authSignAlgorithm
+        : null,
+      backendAuthKid: this.state.authKid ? this.state.authKid : null,
       lastUpdated: new Date(),
     };
   
@@ -176,7 +188,7 @@ class PublicHealthAuthority extends Component {
       .then((result) => {
         if (result) {
           this.setState({
-            authType: "SofProvider",
+            authType: "System",
             clientId: "",
             clientSecret: "",
             username: "",
@@ -187,6 +199,9 @@ class PublicHealthAuthority extends Component {
             startThreshold: "",
             endThreshold: "",
             restAPIURL: "",
+            backendAuthKeyAlias: "",
+            backendAuthAlg: "",
+            backendAuthKid: ""
           });
   
           toast.success("Client Details are saved successfully.", {
@@ -294,27 +309,14 @@ class PublicHealthAuthority extends Component {
                         <Col sm={10}>
                           <Row>
                             <Col sm={4}>
-                              <Form.Check type="radio" id="providerLaunch">
-                                <Form.Check.Input
-                                  type="radio"
-                                  checked={
-                                    this.state.authType === "SofProvider"
-                                  }
-                                  value="SofProvider"
-                                  name="authType"
-                                  onChange={(e) => this.handleRadioChange(e)}
-                                />
-                                <Form.Check.Label>
-                                  Provider Launch
-                                </Form.Check.Label>
-                              </Form.Check>
-                            </Col>
-                            <Col sm={4}>
                               <Form.Check type="radio" id="systemLaunch">
                                 <Form.Check.Input
                                   type="radio"
-                                  checked={this.state.authType === "SofSystem"}
-                                  value="SofSystem"
+                                  checked={
+                                    this.state.authType === "System"
+                                  }
+                                  value="System"
+                                  name="authType"
                                   onChange={(e) => this.handleRadioChange(e)}
                                 />
                                 <Form.Check.Label>
@@ -323,7 +325,21 @@ class PublicHealthAuthority extends Component {
                               </Form.Check>
                             </Col>
                             <Col sm={4}>
-                              <Form.Check type="radio" id="systemLaunchs">
+                              <Form.Check type="radio" id="backend">
+                                <Form.Check.Input
+                                  type="radio"
+                                  checked={this.state.authType === "SofBackend"}
+                                  value="SofBackend"
+                                  name="authType"
+                                  onChange={(e) => this.handleRadioChange(e)}
+                                />
+                                <Form.Check.Label>
+                                  Backend
+                                </Form.Check.Label>
+                              </Form.Check>
+                            </Col>
+                            <Col sm={4}>
+                              <Form.Check type="radio" id="userNamePwd">
                                 {" "}
                                 <Form.Check.Input
                                   type="radio"
@@ -365,7 +381,7 @@ class PublicHealthAuthority extends Component {
                         </Col>
                       </Form.Group>
 
-                      {this.state.authType !== "SofProvider" ? (
+                      {this.state.authType === "System" ? (
                         <Form.Group
                           as={Row}
                           controlId="formHorizontalClientSecret"
@@ -378,9 +394,7 @@ class PublicHealthAuthority extends Component {
                               type="text"
                               placeholder="Client Secret"
                               name="clientSecret"
-                              required={
-                                this.state.authType !== "SofProvider"
-                              }
+                              required
                               onChange={(e) => this.handleChange(e)}
                               value={this.state.clientSecret || ""}
                               isInvalid={
@@ -529,6 +543,82 @@ class PublicHealthAuthority extends Component {
                           </Form.Control.Feedback>
                         </Col>
                       </Form.Group>
+                      {this.state.authType === "SofBackend" ? (
+                      <>
+                        <Form.Group
+                          as={Row}
+                          controlId="formHorizontalKeystoreAlias"
+                        >
+                          <Form.Label column sm={2}>
+                            Keystore Alias:
+                          </Form.Label>
+                          <Col sm={10}>
+                            <Form.Control
+                              type="text"
+                              placeholder="Keystore Alias"
+                              name="keystoreAlias"
+                              onChange={(e) => this.handleChange(e)}
+                              value={this.state.keystoreAlias || ""}
+                              isInvalid={
+                                this.state.isValidated &&
+                                (this.state.keystoreAlias === "" ||
+                                  this.state.keystoreAlias === undefined)
+                              }
+                            />
+                            <Form.Control.Feedback type="invalid">
+                              Please provide Keystore Alias.
+                            </Form.Control.Feedback>
+                          </Col>
+                        </Form.Group>
+                        <Form.Group as={Row} controlId="authAlg">
+                          <Form.Label column sm="2">
+                            Auth Sign Algorithm:
+                          </Form.Label>
+                          <Col sm="10">
+                            <Form.Control
+                              as="select"
+                              value={this.state.authSignAlgorithm}
+                              onChange={(e) => {this.setState({authSignAlgorithm:e.target.value});
+                            }}
+                              className="select-drop-down"
+                              isInvalid={
+                                this.state.isValidated &&
+                                (this.state.authSignAlgorithm === "" ||
+                                  this.state.authSignAlgorithm === undefined)
+                              }                              
+                            >
+                              <option value="">Select Auth Sign Algorithm</option>                              
+                              {this.state.algorithms.map((algorithm) => (
+                                <option key={algorithm} value={algorithm}>
+                                  {algorithm}
+                                </option>
+                              ))}
+                            </Form.Control>
+                            <Form.Control.Feedback type="invalid">
+                              Please provide a Algorithm.
+                            </Form.Control.Feedback>
+                          </Col>
+                        </Form.Group>
+                        <Form.Group
+                          as={Row}
+                          controlId="formAuthKid"
+                        >
+                          <Form.Label column sm={2}>
+                            Auth Key Identifier:
+                          </Form.Label>
+                          <Col sm={10}>
+                            <Form.Control
+                              type="text"
+                              placeholder="Key Identifier (kid)"
+                              name="authKid"
+                              onChange={(e) => this.handleChange(e)}
+                              value={this.state.authKid || ""}
+                            />
+                          </Col>
+                        </Form.Group>
+                      </>) : (
+                        ""
+                      )}
                     </Card.Body>
                   </Accordion.Collapse>
                 </Card>

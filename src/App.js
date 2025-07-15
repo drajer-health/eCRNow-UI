@@ -91,7 +91,7 @@ class App extends Component {
 
   async componentDidMount() {
     const token = Cookies.get("jwt_token");
-    const bypassAuth = process.env.REACT_APP_BYPASS_AUTH !== "false";
+    const bypassAuth = window._env_.REACT_APP_BYPASS_AUTH !== "false";
     
     if (token) {
       this.setAuthorized(true);

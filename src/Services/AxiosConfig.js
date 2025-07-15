@@ -1,7 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-const baseURL = process.env.REACT_APP_ECR_BASE_URL;
+const baseURL = window._env_.REACT_APP_ECR_BASE_URL;
 const axiosInstance = axios.create({ baseURL });
 
 let refreshTimeout;
@@ -23,7 +23,7 @@ export const scheduleRefreshToken = async (token) => {
   if (!decoded || !decoded.exp) return;
 
   let expiresInMs = decoded.exp * 1000 - Date.now();
-  let refreshInMs = expiresInMs - (parseInt(process.env.REACT_APP_REFRESH_TIME, 10) || 60000); 
+  let refreshInMs = expiresInMs - (parseInt(window._env_?.REACT_APP_REFRESH_TIME, 10) || 60000); 
   refreshTimeout = setTimeout(refreshAccessToken, Math.max(refreshInMs, 0));
 };
 
@@ -65,7 +65,7 @@ const handleSessionExpired = () => {
 // Axios Request Interceptor
 
 axiosInstance.interceptors.request.use(async (config) => {
-  const isBypassAuth = process.env.REACT_APP_BYPASS_AUTH !== 'false'
+  const isBypassAuth = window._env_?.REACT_APP_BYPASS_AUTH !== 'false'
 
   if (isBypassAuth) {
     return config; // Allow API call without token

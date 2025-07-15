@@ -24,9 +24,11 @@ FROM nginx:alpine
 
 # Copy built static assets from builder stage
 COPY --from=build /app/build /usr/share/nginx/html
-
-# Copy custom nginx config if needed; otherwise, remove this line
 COPY docker/nginx.conf /etc/nginx/nginx.conf
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # Expose default HTTP port
 EXPOSE 80

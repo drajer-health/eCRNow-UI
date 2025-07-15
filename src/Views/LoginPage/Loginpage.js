@@ -55,7 +55,7 @@ export default function LoginPage({ setAuthorized }) {
       formData.append("password", password);
   
       const response = await axios.post(
-        `${process.env.REACT_APP_ECR_BASE_URL}/api/auth/generateAuthToken`, 
+        `${window._env_?.REACT_APP_ECR_BASE_URL}/api/auth/generateAuthToken`, 
         formData.toString(),
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );

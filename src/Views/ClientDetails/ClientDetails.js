@@ -225,7 +225,7 @@ class ClientDetails extends Component {
         
         
         // var serviceURL = this.geturl();
-        fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/clientDetails", {
+        fetch(window._env_?.REACT_APP_ECR_BASE_URL + "/api/clientDetails", {
             method: requestMethod,
             headers: {
                 'Content-Type': 'application/json'

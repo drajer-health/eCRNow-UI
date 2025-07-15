@@ -40,7 +40,7 @@ class ClientDetailsList extends Component {
 
   getAllClientDetails() {
     // const serviceURL = this.geturl();
-    fetch(process.env.REACT_APP_ECR_BASE_URL + "/api/clientDetails/", {
+    fetch(window._env_?.REACT_APP_ECR_BASE_URL + "/api/clientDetails/", {
       method: "GET",
     })
       .then((response) => {

@@ -1515,21 +1515,7 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
                                         checked={get.subscriptionsEnabled}
                                       />
                                     </td>                    
-                                    {/* <td className="karCheckBoxes">
-                                      <Form.Check
-                                        type="checkbox"
-                                        name="covidEnabled"
-                                        onChange={(e) =>
-                                          handleCheckboxChange(
-                                            e,
-                                            get,
-                                            "EnableCovidReporting"
-                                          )
-                                        }
-                                        className="tableCheckboxes"
-                                        checked={get.covidOnly}
-                                      />
-                                    </td> */}
+
                                     <td>
                                       <Form.Control
                                         as="select"

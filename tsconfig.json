@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "esnext",
+    "jsx": "react-jsx",
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "outDir": "dist",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/**/*", "vite.config.ts"],
+  "exclude": ["node_modules"]
+}

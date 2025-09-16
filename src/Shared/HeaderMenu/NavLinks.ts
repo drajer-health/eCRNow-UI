@@ -1,0 +1,8 @@
+export const menuData = [
+  { path: "/home", label: "Home" },
+  { path: "/healthCareSettings", label: "Healthcare Settings" },
+  { path: "/healthCareSettingsList", label: "Healthcare Settings List" },
+  { path: "/publicHealthAuthority", label: "Public Health Authority" },
+  { path: "/publicHealthAuthorityList", label: "Public Health Authority List" },
+  { path: "/logout", label: "Logout", authRequired: true },
+];

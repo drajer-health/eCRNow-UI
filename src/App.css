@@ -54,3 +54,34 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+:root {
+  --primary-color: #0d6efd;
+}
+
+.form-check-input.is-valid:checked, .was-validated .form-check-input:valid:checked {
+  background-color:var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.form-check-input.is-valid:focus, .was-validated .form-check-input:valid:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.form-check-input.is-valid~.form-check-label, .was-validated .form-check-input:valid~.form-check-label {
+  color: #212529;
+}
+
+.form-check-input.is-valid, .was-validated .form-check-input:valid {
+  border-color: #dee2e6;
+}
+
+.form-control.is-valid:focus, .was-validated .form-control:valid:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.form-control.is-valid, .was-validated .form-control:valid {
+  border-color: #dee2e6;
+  background-image: none;
+}

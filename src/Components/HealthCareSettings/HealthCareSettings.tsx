@@ -76,7 +76,7 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
   const [isKarFhirServerURLSelected, setIsKarFhirServerURLSelected] =
     useState(false);
   const [selectedKARDetails, setSelectedKARDetails] = useState<any[]>([]);
-  const [outputFormats] = useState(["CDA_R11", "CDA_R30", "FHIR"]);
+  const [outputFormats] = useState(["CDA_R11", "CDA_R30", "CDA_R31", "FHIR"]);
   const [hsKARStatus, setHsKARStatus] = useState<any[]>([]);
   const [formState, setFormState] = useState<any>({}); // holds fields like authType, clientId, etc.
 

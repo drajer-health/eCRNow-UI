@@ -31,7 +31,6 @@ import {
   outputFormatsList,
 } from "./RadioOptions";
 
-const numberRegex = /^\d+$/;
 
 const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
   selectedHealthCareSettings,

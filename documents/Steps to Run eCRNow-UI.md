@@ -1,300 +1,346 @@
-# Steps to Separate UI code from eCRNow application
+# Steps to Run eCRNow-UI
 
-1)  Create a new directory \'eCRNow-UI\'.
+eCRNow-UI is a modern React-based application built with TypeScript and Vite. This guide provides comprehensive instructions for setting up, running, and deploying the application.
 
-2)  Copy the contents of frontend folder to eCRNow-UI directory.
+## Pre-Requisites
 
-3)  Delete the frontend folder from eCRNow root directory.
+Before getting started, ensure the following technologies are installed on your machine:
 
-4)  Remove the Maven Plugins related to frontend from pom.xml. Below are
-    the 3 plugins need to be removed from pom.xml
+- **Node.js:** 18.0.0 or above (recommended: LTS version)
+- **npm:** 9.0.0 or above
+- **git:** Latest stable version
 
-1\) exec-maven-plugin - npm install
+## Quick Start Guide
 
-2\) exec-maven-plugin - npm run build
+### 1. Clone the Repository
 
-3\) maven-antrun-plugin - which copies the build files to backend source
-directory.
+```bash
+git clone https://github.com/drajer-health/eCRNow-UI.git
+cd eCRNow-UI
+```
 
-5)  Then backend Service can be build and run individually without
-    frontend code.
+### 2. Install Dependencies
 
-# Changes to be made in UI to run and deploy UI code:
+Download all required packages specified in package.json:
 
-Below are the changes to be done to build the UI code and deploy to
-Tomcat web server.
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the project root by copying the example file:
+
+```bash
+cp .env.example .env
+```
+
+Configure the following environment variables in your `.env` file:
+
+```env
+VITE_ECR_BASE_URL=http://localhost:8081
+VITE_BYPASS_AUTH=false
+VITE_REFRESH_TIME=60000
+```
+
+**Environment Variables Explained:**
+- `VITE_ECR_BASE_URL`: Backend API URL for the eCRNow service
+- `VITE_BYPASS_AUTH`: Skip authentication for development (set to `true` only in dev)
+- `VITE_REFRESH_TIME`: JWT token refresh interval in milliseconds (default: 60000ms = 1 minute)
+
+**Note:** Vite exposes environment variables on the `import.meta.env` object. Only variables prefixed with `VITE_` are exposed to your client-side code.
+
+Example of accessing an environment variable in the code:
+```javascript
+const baseUrl = import.meta.env.VITE_ECR_BASE_URL;
+```
+
+### 4. Start Development Server
+
+Run the application in development mode:
+
+```bash
+npm run dev
+```
+
+The application will be available at [http://localhost:5173](http://localhost:5173)
+
+**Development Server Features:**
+- Hot Module Replacement (HMR) for instant updates
+- API proxy configured to forward `/api` requests to `http://localhost:8081`
+- TypeScript type checking
+- Fast refresh for React components
+
+## Available Commands
+
+### Development
+
+```bash
+npm run dev
+```
+Starts the Vite development server with hot module replacement.
+
+### Production Build
+
+```bash
+npm run build
+```
+
+Creates an optimized production build in the `dist/` directory. This command:
+- Compiles TypeScript to JavaScript
+- Bundles and optimizes all assets
+- Performs tree-shaking to remove unused code
+- Generates production-ready files
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+Serves the production build locally to test before deployment.
+
+### Testing
+
+Run all tests:
+```bash
+npm test
+```
+
+Run tests in watch mode (re-runs tests on file changes):
+```bash
+npm run test:watch
+```
+
+Generate test coverage report:
+```bash
+npm run coverage
+```
+
+Coverage reports will be generated in:
+- Console output (text format)
+- HTML report in `coverage/` directory
+
+## Backend Integration
+
+The application communicates with the eCRNow backend service (default: `http://localhost:8081`).
+
+**Important:** Ensure the backend service is running before starting the frontend application.
+
+## Deployment
+
+### Production Deployment
+
+1. Build the application:
+   ```bash
+   npm run build
+   ```
+
+2. The production-ready files will be in the `dist/` directory.
+
+3. Deploy the contents of the `dist/` directory to your web server (Apache, Nginx, etc.).
+
+### Deploying to Tomcat (Legacy)
+
+If you need to deploy to Tomcat as a WAR file, you can use the Maven configuration provided in the legacy setup (see below).
+
+## Technology Stack
+
+- **Frontend Framework:** React 18.3.1 with TypeScript 5.8.3
+- **Build Tool:** Vite 7.0.5
+- **UI Libraries:** React Bootstrap, Material-UI (MUI), Emotion
+- **Routing:** React Router DOM 7.1.1
+- **HTTP Client:** Axios 1.7.9
+- **Testing:** Vitest 3.2.4 with React Testing Library
+- **Styling:** Bootstrap 5.3.3, CSS-in-JS (Emotion)
+
+## Key Features
+
+- **Authentication & Authorization:** JWT-based authentication with automatic token refresh
+- **Client Details Management:** Configure EHR client integrations
+- **Healthcare Settings:** FHIR configuration, transport settings, application settings
+- **Knowledge Artifact Repositories:** Search and register FHIR-based KAR repositories
+- **Public Health Authority Management:** Configure PHA endpoints for case reporting
+
+## Browser Support
+
+Modern browsers with ES6+ support:
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Port already in use:** If port 5173 is already in use, Vite will automatically use the next available port.
+
+2. **Backend connection errors:** Ensure the `VITE_ECR_BASE_URL` in your `.env` file points to the correct backend URL and that the backend service is running.
+
+3. **Module not found errors:** Run `npm install` to ensure all dependencies are installed.
+
+## Support
+
+For issues and questions, please refer to the project documentation or contact the development team.
+
+---
+
+## Legacy Maven Build Setup (Optional)
+
+For organizations that require WAR file deployment to Tomcat, a Maven-based build configuration can be set up. This section is optional and only needed for specific deployment scenarios.
 
 ### Web.xml
 
-Create a web.xml file under the root directory of frontend code and
-paste the below code in web.xml file.
+Create a `web.xml` file under the root directory:
 
-\<web-app xmlns=\"http://java.sun.com/xml/ns/j2ee\"
-
-        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
-
-        xsi:schemaLocation=\"http://java.sun.com/xml/ns/j2ee
-
-        http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd\"
-
-        version=\"2.4\"\>
-
-  \<display-name\>eCRNow-UI\</display-name\>
-
-  \<error-page\>
-
-    \<error-code\>404\</error-code\>
-
-    \<location\>/index.html\</location\>
-
-  \</error-page\>
-
-\</web-app\>
+```xml
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+        http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+        version="2.4">
+  <display-name>eCRNow-UI</display-name>
+  <error-page>
+    <error-code>404</error-code>
+    <location>/index.html</location>
+  </error-page>
+</web-app>
+```
 
 ### Pom.xml
 
-Create a pom.xml under the root directory of frontend code and paste the
-below code in pom.xml file.
-
-\<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
-
-         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\"\>
-
-    \<modelVersion\>4.0.0\</modelVersion\>
-
-    \<groupId\>com.drajer\</groupId\>
-
-    \<artifactId\>eCRNow-UI\</artifactId\>
-
-    \<version\>1.0\</version\>
-
-    \<packaging\>war\</packaging\>
-
-    \<properties\>
-
-        \<project.build.sourceEncoding\>UTF-8\</project.build.sourceEncoding\>
-
-        \<npm.output.directory\>dist\</npm.output.directory\>
-
-    \</properties\>
-
-    \<build\>
-
-        \<finalName\>\${project.artifactId}\</finalName\>
-
-        \<plugins\>
-
-            \<!\-- Standard plugin to generate WAR \--\>
-
-            \<plugin\>
-
-                \<groupId\>org.apache.maven.plugins\</groupId\>
-
-                \<artifactId\>maven-war-plugin\</artifactId\>
-
-                \<version\>2.1.1\</version\>
-
-                \<configuration\>
-
-                    \<webResources\>
-
-                        \<resource\>
-
-                            \<directory\>\${npm.output.directory}\</directory\>
-
-                        \</resource\>
-
-                    \</webResources\>
-
-                    \<webXml\>\${basedir}/web.xml\</webXml\>
-
-                \</configuration\>
-
-            \</plugin\>
-
-            \<plugin\>
-
-                \<groupId\>org.codehaus.mojo\</groupId\>
-
-                \<artifactId\>exec-maven-plugin\</artifactId\>
-
-                \<version\>1.3.2\</version\>
-
-                \<executions\>
-
-                    \<execution\>
-
-                        \<id\>npm run build (compile)\</id\>
-
-                        \<goals\>
-
-                            \<goal\>exec\</goal\>
-
-                        \</goals\>
-
-                        \<phase\>compile\</phase\>
-
-                        \<configuration\>
-
-                            \<executable\>npm\</executable\>
-
-                            \<arguments\>
-
-                                \<argument\>run\</argument\>
-
-                                \<argument\>build\</argument\>
-
-                            \</arguments\>
-
-                        \</configuration\>
-
-                    \</execution\>
-
-                \</executions\>
-
-                \<configuration\>
-
-                    \<environmentVariables\>
-
-                        \<CI\>false\</CI\>
-
-                        \<NPM_CONFIG_PREFIX\>\${basedir}/npm\</NPM_CONFIG_PREFIX\>
-
-                        \<NPM_CONFIG_CACHE\>\${NPM_CONFIG_PREFIX}/cache\</NPM_CONFIG_CACHE\>
-
-                        \<NPM_CONFIG_TMP\>\${project.build.directory}/npmtmp\</NPM_CONFIG_TMP\>
-
-                    \</environmentVariables\>
-
-                \</configuration\>
-
-            \</plugin\>
-
-        \</plugins\>
-
-    \</build\>
-
-    \<profiles\>
-
-        \<profile\>
-
-            \<id\>local\</id\>
-
-            \<activation\>
-
-                \<activeByDefault\>true\</activeByDefault\>
-
-            \</activation\>
-
-            \<build\>
-
-                \<plugins\>
-
-                    \<plugin\>
-
-                        \<groupId\>org.codehaus.mojo\</groupId\>
-
-                        \<artifactId\>exec-maven-plugin\</artifactId\>
-
-                        \<configuration\>
-
-                            \<environmentVariables\>
-
-                                \<VITE_PUBLIC_URL\>http://localhost:8080/\${project.artifactId}\</VITE_PUBLIC_URL\>
-
-                                \<VITE_ROUTER_BASE\>/\${project.artifactId}\</VITE_ROUTER_BASE\>
-
-                                \<VITE_ECR_BASE_URL\>http://localhost:8081\</VITE_ECR_BASE_URL\>
-
-                            \</environmentVariables\>
-
-                        \</configuration\>
-
-                    \</plugin\>
-
-                \</plugins\>
-
-            \</build\>
-
-        \</profile\>
-
-        \<profile\>
-
-            \<id\>prod\</id\>
-
-            \<build\>
-
-                \<plugins\>
-
-                    \<plugin\>
-
-                        \<groupId\>org.codehaus.mojo\</groupId\>
-
-                        \<artifactId\>exec-maven-plugin\</artifactId\>
-
-                        \<configuration\>
-
-                            \<environmentVariables\>
-
-                                \<VITE_PUBLIC_URL\>http://ecr.drajer.com/\${project.artifactId}\</VITE_PUBLIC_URL\>
-
-                                \<VITE_ROUTER_BASE\>/\${project.artifactId}\</VITE_ROUTER_BASE\>
-
-                                \<VITE_ECR_BASE_URL\>http://localhost:8081\</VITE_ECR_BASE_URL\>
-
-                            \</environmentVariables\>
-
-                        \</configuration\>
-
-                    \</plugin\>
-
-                \</plugins\>
-
-            \</build\>
-
-        \</profile\>
-
-    \</profiles\>
-
-\</project\>
-
-### Environment Variables
-
-The application uses environment variables for configuration. For development, you can modify the `.env` file. For production builds using Maven, these are set in the `pom.xml` profiles.
-
-Vite exposes environment variables on the `import.meta.env` object. Only variables prefixed with `VITE_` are exposed to your client-side code.
-
-Example of accessing an environment variable in the code:
-`const baseUrl = import.meta.env.VITE_ECR_BASE_URL;`
-
-The `pom.xml` sets the following variables for Maven builds:
-*   `VITE_PUBLIC_URL`: The public path for the application when deployed.
-*   `VITE_ROUTER_BASE`: The base name for the React Router.
-*   `VITE_ECR_BASE_URL`: The base URL for the backend eCRNow service.
-
-### Note:
-
-
-Change the `VITE_PUBLIC_URL`, `VITE_ROUTER_BASE`, `VITE_ECR_BASE_URL`
-values in pom.xml as per your environment.
-
-### Instructions to Build and Deploy onto Tomcat web server:
-
-1)  Run the below command to download all the required packages.
-
-npm install
-
-2)  Run the below command to build the code and create a package.
-
-mvn clean install (or) mvn package
-
-3)  After the build is success, a war file will be generated in the
-    `target` folder under the root directory of UI.
-
-4)  Copy the war file onto tomcat/webapps folder and start the tomcat
-    server.
-
-5)  Once the tomcat is up and running you should be able to access the
-    UI from browser.
-
-http://localhost:8080/eCRNow-UI
+Create a `pom.xml` under the root directory:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.drajer</groupId>
+    <artifactId>eCRNow-UI</artifactId>
+    <version>1.0</version>
+    <packaging>war</packaging>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <npm.output.directory>dist</npm.output.directory>
+    </properties>
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <!-- Standard plugin to generate WAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.1.1</version>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>${npm.output.directory}</directory>
+                        </resource>
+                    </webResources>
+                    <webXml>${basedir}/web.xml</webXml>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.3.2</version>
+                <executions>
+                    <execution>
+                        <id>npm run build (compile)</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>run</argument>
+                                <argument>build</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <environmentVariables>
+                        <CI>false</CI>
+                        <NPM_CONFIG_PREFIX>${basedir}/npm</NPM_CONFIG_PREFIX>
+                        <NPM_CONFIG_CACHE>${NPM_CONFIG_PREFIX}/cache</NPM_CONFIG_CACHE>
+                        <NPM_CONFIG_TMP>${project.build.directory}/npmtmp</NPM_CONFIG_TMP>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <configuration>
+                            <environmentVariables>
+                                <VITE_PUBLIC_URL>http://localhost:8080/${project.artifactId}</VITE_PUBLIC_URL>
+                                <VITE_ROUTER_BASE>/${project.artifactId}</VITE_ROUTER_BASE>
+                                <VITE_ECR_BASE_URL>http://localhost:8081</VITE_ECR_BASE_URL>
+                            </environmentVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <configuration>
+                            <environmentVariables>
+                                <VITE_PUBLIC_URL>http://ecr.drajer.com/${project.artifactId}</VITE_PUBLIC_URL>
+                                <VITE_ROUTER_BASE>/${project.artifactId}</VITE_ROUTER_BASE>
+                                <VITE_ECR_BASE_URL>http://localhost:8081</VITE_ECR_BASE_URL>
+                            </environmentVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
+```
+
+**Note:** Change the `VITE_PUBLIC_URL`, `VITE_ROUTER_BASE`, and `VITE_ECR_BASE_URL` values in `pom.xml` as per your environment.
+
+### Maven Build and Deployment Instructions
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Build the WAR file:
+   ```bash
+   mvn clean install
+   ```
+   or
+   ```bash
+   mvn package
+   ```
+
+3. After a successful build, a WAR file will be generated in the `target` folder.
+
+4. Copy the WAR file to the Tomcat `webapps` folder and start the Tomcat server.
+
+5. Once Tomcat is running, access the application at:
+   ```
+   http://localhost:8080/eCRNow-UI
+   ```

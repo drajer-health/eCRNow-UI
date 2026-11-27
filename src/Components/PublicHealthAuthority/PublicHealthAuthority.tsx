@@ -88,6 +88,8 @@ const PublicHealthAuthority: React.FC<PublicHealthAuthorityProps> = ({
     };
   };
 
+  const [activeKey, setActiveKey] = useState<string | null>("0");
+  const toggleSection = (key: string) => setActiveKey((prev) => (prev === key ? null : key));
   const [state, setState] = useState(getInitialState);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -257,11 +259,11 @@ const PublicHealthAuthority: React.FC<PublicHealthAuthorityProps> = ({
           </Alert>
 
           <Form noValidate validated={state.validated} onSubmit={handleSubmit}>
-            <Accordion defaultActiveKey="0">
+            <Accordion activeKey={activeKey}>
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="0">
+                <Card.Header onClick={() => toggleSection("0")}>
                   FHIR Configuration
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="0">
                   <Card.Body className="fhirConfiguration">
                    <FormRadioGroup

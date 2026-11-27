@@ -55,6 +55,8 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
       : addNewHealthCare?.addNewHealthCare ?? false;
 
   // State
+  const [activeKey, setActiveKey] = useState<string | null>("0");
+  const toggleSection = (key: string) => setActiveKey((prev) => (prev === key ? null : key));
   const [validated, setValidated] = useState(false);
   const [isValidated, setIsValidated] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -259,7 +261,7 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
   };
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormState((prev: any) => ({
@@ -338,7 +340,9 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
     }));
   };
 
-  const handleKARChange = async (e: ChangeEvent<HTMLSelectElement>) => {
+  const handleKARChange = async (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const selectedId = e.target.value;
 
     if (!karFhirServerURLList.length) return;
@@ -369,7 +373,7 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
   };
 
   const handleOutputFormatChange = (
-    e: ChangeEvent<HTMLSelectElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
     rowData: any
   ) => {
     rowData.outputFormat = e.target.value;
@@ -683,12 +687,12 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
           </Alert>
 
           <Form noValidate validated={isValidated} onSubmit={handleSubmit}>
-            <Accordion defaultActiveKey="0">
+            <Accordion activeKey={activeKey}>
               {/*  FHIR Configuration  */}
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="0">
+                <Card.Header onClick={() => toggleSection("0")}>
                   FHIR Configuration
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="0">
                   <Card.Body className="fhirConfiguration">
                     <FormRadioGroup
@@ -838,9 +842,9 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
 
               {/*  Transport Configuration  */}
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="1">
+                <Card.Header onClick={() => toggleSection("1")}>
                   Transport Configuration
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="1">
                   <Card.Body className="transportConfiguration">
                     <FormRadioGroup
@@ -1154,9 +1158,9 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
 
               {/*  App Configuration  */}
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="2">
+                <Card.Header onClick={() => toggleSection("2")}>
                   App Configuration
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="2">
                   <Card.Body className="appConfiguration">
                     <FormInputGroup
@@ -1285,9 +1289,9 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
 
               {/*  Organization Defaults  */}
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="4">
+                <Card.Header onClick={() => toggleSection("4")}>
                   Organization Defaults
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="4">
                   <Card.Body className="Organization Defaults">
                     <FormInputGroup
@@ -1350,9 +1354,9 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
 
               {/*  Response Options  */}
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="5">
+                <Card.Header onClick={() => toggleSection("5")}>
                   Response Options
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="5">
                   <Card.Body className="Organization Defaults">
                     <FormRadioGroup
@@ -1415,9 +1419,9 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
               {/*  eCR Specifications / KAR Configuration  */}
               {!isAddNew && (
                 <Card className="accordionCards">
-                  <Accordion.Toggle as={Card.Header} eventKey="3">
+                  <Card.Header onClick={() => toggleSection("3")}>
                     eCR Specifications/KAR Configuration
-                  </Accordion.Toggle>
+                  </Card.Header>
                   <Accordion.Collapse eventKey="3">
                     <Card.Body className="appConfiguration">
                       <Form.Group as={Row} controlId="fhirServerURLPickList">
@@ -1521,7 +1525,7 @@ const HealthCareSettings: React.FC<HealthCareSettingsProps> = ({
                                         size="sm"
                                         defaultValue={get.outputFormat}
                                         onChange={(
-                                          e: React.ChangeEvent<HTMLSelectElement>
+                                          e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
                                         ) => handleOutputFormatChange(e, get)}
                                       >
                                         <option value="">

@@ -55,6 +55,8 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
     { id: "fullecr", label: "Full ECR Report", value: "fullecr" },
   ];
 
+  const [activeKey, setActiveKey] = useState<string | null>("0");
+  const toggleSection = (key: string) => setActiveKey((prev) => (prev === key ? null : key));
   const [state, setState] = useState<any>({
     validated: false,
     isValidated: false,
@@ -334,11 +336,11 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
             onSubmit={handleSubmit}
             data-testid="client-form"
           >
-            <Accordion defaultActiveKey="0">
+            <Accordion activeKey={activeKey}>
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="0">
+                <Card.Header onClick={() => toggleSection("0")}>
                   FHIR Configuration
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="0">
                   <Card.Body className="fhirConfiguration">
                     <FormRadioGroup
@@ -479,9 +481,9 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
               </Card>
 
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="1">
+                <Card.Header onClick={() => toggleSection("1")}>
                   Transport Configuration
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="1">
                   <Card.Body className="transportConfiguration">
                     <FormRadioGroup
@@ -688,9 +690,9 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
               </Card>
 
               <Card className="accordionCards">
-                <Accordion.Toggle as={Card.Header} eventKey="2">
+                <Card.Header onClick={() => toggleSection("2")}>
                   App Configuration
-                </Accordion.Toggle>
+                </Card.Header>
                 <Accordion.Collapse eventKey="2">
                   <Card.Body className="appConfiguration">
                     <FormInputGroup

@@ -15,7 +15,7 @@ const FormInputGroup: React.FC<FormInputGroupProps> = ({ label, name, placeholde
                 name={name}
                 placeholder={placeholder}
                 value={value}
-                onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
                     if (
                         type === "number" &&
                         min !== undefined &&
@@ -27,7 +27,7 @@ const FormInputGroup: React.FC<FormInputGroupProps> = ({ label, name, placeholde
                         const syntheticEvent = {
                             ...e,
                             target,
-                        } as React.ChangeEvent<HTMLInputElement | HTMLSelectElement>;
+                        } as React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
                         onChange(syntheticEvent);
                         return;
                     }
